@@ -1,3 +1,4 @@
+"use strict";
 function login() {
     var err = false;
     var data = new Object();

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	up2date "xteve/src/internal/up2date/client"
@@ -48,17 +48,17 @@ func BinaryUpdate() (err error) {
 		if resp.StatusCode != http.StatusOK {
 
 			if resp.StatusCode == 404 {
-				err = fmt.Errorf(fmt.Sprintf("Update Server: %s (%s)", http.StatusText(resp.StatusCode), gitInfo))
+				err = fmt.Errorf("Update Server: %s (%s)", http.StatusText(resp.StatusCode), gitInfo)
 				ShowError(err, 6003)
 				return nil
 			}
 
-			err = fmt.Errorf(fmt.Sprintf("%d: %s (%s)", resp.StatusCode, http.StatusText(resp.StatusCode), gitInfo))
+			err = fmt.Errorf("%d: %s (%s)", resp.StatusCode, http.StatusText(resp.StatusCode), gitInfo)
 
 			return err
 		}
 
-		body, err = ioutil.ReadAll(resp.Body)
+		body, err = io.ReadAll(resp.Body)
 
 		err = json.Unmarshal(body, &git)
 		if err != nil {
@@ -87,7 +87,7 @@ func BinaryUpdate() (err error) {
 		err = up2date.GetVersion()
 		if err != nil {
 
-			debug = fmt.Sprintf(err.Error())
+			debug = err.Error()
 			showDebug(debug, 1)
 
 			return nil
@@ -95,7 +95,7 @@ func BinaryUpdate() (err error) {
 
 		if len(updater.Response.Reason) > 0 {
 
-			err = fmt.Errorf(fmt.Sprintf("Update Server: %s", updater.Response.Reason))
+			err = fmt.Errorf("Update Server: %s", updater.Response.Reason)
 			ShowError(err, 6002)
 
 			return nil

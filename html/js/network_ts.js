@@ -1,8 +1,11 @@
-var Server = /** @class */ (function () {
-    function Server(cmd) {
+"use strict";
+class Server {
+    protocol;
+    cmd;
+    constructor(cmd) {
         this.cmd = cmd;
     }
-    Server.prototype.request = function (data) {
+    request(data) {
         if (SERVER_CONNECTION == true) {
             return;
         }
@@ -94,9 +97,8 @@ var Server = /** @class */ (function () {
             }
             createLayout();
         };
-    };
-    return Server;
-}());
+    }
+}
 function getCookie(name) {
     var value = "; " + document.cookie;
     var parts = value.split("; " + name + "=");

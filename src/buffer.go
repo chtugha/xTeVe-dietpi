@@ -11,7 +11,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -21,6 +20,24 @@ import (
 	"strconv"
 	"strings"
 	"time"
+)
+
+const (
+	bufferStartupTimeoutIterations      = 200
+	maxRetainedClientSegments           = 20
+	streamLimitLoopCount                = 60
+	streamLimitSegmentSleepMS           = 500
+	m3u8SegmentDequeMax                 = 30
+	m3u8SegmentDequeTrim                = 15
+	hlsTimingHeadroomFactor             = 0.25
+	hlsPollingIntervalMS                = 100
+	hlsPollingStepMS                    = 100
+	thirdPartyBufferStartupTimeoutSec   = 20
+	bufferInactivityTimeoutIterations   = 300
+	bufferInactivityTimeout             = bufferInactivityTimeoutIterations * 100 * time.Millisecond
+	thirdPartyBufferLogSleepMS          = 10
+	thirdPartyBufferTimeoutPollMS       = 1000
+	thirdPartyBufferRetryDelayMS        = 500
 )
 
 func createStreamID(stream map[int]ThisStream) (streamID int) {
@@ -162,10 +179,9 @@ func bufferingStream(playlistID, streamingURL, channelName string, w http.Respon
 					w.Header().Set("Content-type", "video/mpeg")
 					w.Header().Set("Content-Length:", "0")
 
-					for i := 1; i < 60; i++ {
-						_ = i
+					for range [streamLimitLoopCount]struct{}{} {
 						w.Write([]byte(content))
-						time.Sleep(time.Duration(500) * time.Millisecond)
+						time.Sleep(streamLimitSegmentSleepMS * time.Millisecond)
 					}
 
 					return
@@ -242,13 +258,13 @@ func bufferingStream(playlistID, streamingURL, channelName string, w http.Respon
 
 					timeOut++
 
-					time.Sleep(time.Duration(100) * time.Millisecond)
+					time.Sleep(hlsPollingIntervalMS * time.Millisecond)
 
 					if c, ok := BufferClients.Load(playlistID + stream.MD5); ok {
 
 						var clients = c.(ClientConnection)
 
-						if clients.Error != nil || timeOut > 200 {
+						if clients.Error != nil || timeOut > bufferStartupTimeoutIterations {
 							killClientConnection(streamID, stream.PlaylistID, false)
 							return
 						}
@@ -260,37 +276,39 @@ func bufferingStream(playlistID, streamingURL, channelName string, w http.Respon
 
 				var oldSegments []string
 
+				lastSegmentTime := time.Now()
+
 				for { // Loop 2: Temporäre Datein sind vorhanden, Daten können zum Client gesendet werden
 
 					// HTTP Clientverbindung überwachen
+					select {
 
-					cn, ok := w.(http.CloseNotifier)
-					if ok {
+					case <-r.Context().Done():
+						killClientConnection(streamID, playlistID, false)
+						return
 
-						select {
+					default:
+						if c, ok := BufferClients.Load(playlistID + stream.MD5); ok {
 
-						case <-cn.CloseNotify():
-							killClientConnection(streamID, playlistID, false)
-							return
-
-						default:
-							if c, ok := BufferClients.Load(playlistID + stream.MD5); ok {
-
-								var clients = c.(ClientConnection)
-								if clients.Error != nil {
-									ShowError(clients.Error, 0)
-									killClientConnection(streamID, playlistID, false)
-									return
-								}
-
-							} else {
-
+							var clients = c.(ClientConnection)
+							if clients.Error != nil {
+								ShowError(clients.Error, 0)
+								killClientConnection(streamID, playlistID, false)
 								return
-
 							}
+
+						} else {
+
+							return
 
 						}
 
+					}
+
+					if time.Since(lastSegmentTime) > bufferInactivityTimeout {
+						showDebug("Buffer Status:Inactivity timeout, killing client connection", 1)
+						killClientConnection(streamID, playlistID, false)
+						return
 					}
 
 					if _, err := os.Stat(stream.Folder); os.IsNotExist(err) {
@@ -299,7 +317,10 @@ func bufferingStream(playlistID, streamingURL, channelName string, w http.Respon
 					}
 
 					var tmpFiles = getTmpFiles(&stream)
-					//fmt.Println("Buffer Loop:", stream.Connection)
+
+					if len(tmpFiles) > 0 {
+						lastSegmentTime = time.Now()
+					}
 
 					for _, f := range tmpFiles {
 
@@ -313,65 +334,42 @@ func bufferingStream(playlistID, streamingURL, channelName string, w http.Respon
 						var fileName = stream.Folder + f
 
 						file, err := os.Open(fileName)
-						defer file.Close()
+						if err != nil {
+							continue
+						}
 
+						l, err := file.Stat()
 						if err == nil {
 
-							l, err := file.Stat()
+							debug = fmt.Sprintf("Buffer Status:Send to client (%s)", fileName)
+							showDebug(debug, 2)
+
+							var buffer = make([]byte, int(l.Size()))
+							_, err = file.Read(buffer)
+
 							if err == nil {
 
-								debug = fmt.Sprintf("Buffer Status:Send to client (%s)", fileName)
-								showDebug(debug, 2)
+								file.Seek(0, 0)
 
-								var buffer = make([]byte, int(l.Size()))
-								_, err = file.Read(buffer)
+								if streaming == false {
 
-								if err == nil {
-
-									file.Seek(0, 0)
-
-									if streaming == false {
-
-										contentType := http.DetectContentType(buffer)
-										_ = contentType
-										//w.Header().Set("Content-type", "video/mpeg")
-										w.Header().Set("Content-type", contentType)
-										w.Header().Set("Content-Length", "0")
-										w.Header().Set("Connection", "close")
-
-									}
-
-									/*
-									   // HDHR Header
-									   w.Header().Set("Cache-Control", "no-cache")
-									   w.Header().Set("Pragma", "no-cache")
-									   w.Header().Set("transferMode.dlna.org", "Streaming")
-									*/
-
-									_, err := w.Write(buffer)
-
-									if err != nil {
-										file.Close()
-										killClientConnection(streamID, playlistID, false)
-										return
-									}
-
-									file.Close()
-									streaming = true
+									contentType := http.DetectContentType(buffer)
+									_ = contentType
+									w.Header().Set("Content-type", contentType)
+									w.Header().Set("Content-Length", "0")
+									w.Header().Set("Connection", "close")
 
 								}
 
-								file.Close()
+								_, err := w.Write(buffer)
 
-							}
+								if err != nil {
+									file.Close()
+									killClientConnection(streamID, playlistID, false)
+									return
+								}
 
-							var n = indexOfString(f, oldSegments)
-
-							if n > 20 {
-
-								var fileToRemove = stream.Folder + oldSegments[0]
-								os.RemoveAll(getPlatformFile(fileToRemove))
-								oldSegments = append(oldSegments[:0], oldSegments[0+1:]...)
+								streaming = true
 
 							}
 
@@ -379,10 +377,20 @@ func bufferingStream(playlistID, streamingURL, channelName string, w http.Respon
 
 						file.Close()
 
+						var n = indexOfString(f, oldSegments)
+
+						if n > maxRetainedClientSegments {
+
+							var fileToRemove = stream.Folder + oldSegments[0]
+							os.RemoveAll(getPlatformFile(fileToRemove))
+							oldSegments = append(oldSegments[:0], oldSegments[0+1:]...)
+
+						}
+
 					}
 
 					if len(tmpFiles) == 0 {
-						time.Sleep(time.Duration(100) * time.Millisecond)
+						time.Sleep(hlsPollingIntervalMS * time.Millisecond)
 					}
 
 				} // Ende Loop 2
@@ -409,7 +417,7 @@ func getTmpFiles(stream *ThisStream) (tmpFiles []string) {
 
 	if _, err := os.Stat(tmpFolder); !os.IsNotExist(err) {
 
-		files, err := ioutil.ReadDir(getPlatformPath(tmpFolder))
+		files, err := os.ReadDir(getPlatformPath(tmpFolder))
 		if err != nil {
 			ShowError(err, 000)
 			return
@@ -424,6 +432,9 @@ func getTmpFiles(stream *ThisStream) (tmpFiles []string) {
 
 				if err == nil {
 					fileIDs = append(fileIDs, f)
+				} else {
+					showDebug(fmt.Sprintf("Buffer Status:Skipping non-numeric temp file: %s", file.Name()), 2)
+					continue
 				}
 
 			}
@@ -536,6 +547,9 @@ func clientConnection(stream ThisStream) (status bool) {
 
 func connectToStreamingServer(streamID int, playlistID string) {
 
+	showDebug(fmt.Sprintf("Buffer Goroutine:START connectToStreamingServer streamID=%d playlistID=%s", streamID, playlistID), 1)
+	defer showDebug(fmt.Sprintf("Buffer Goroutine:END connectToStreamingServer streamID=%d playlistID=%s", streamID, playlistID), 1)
+
 	if p, ok := BufferInformation.Load(playlistID); ok {
 
 		var playlist = p.(Playlist)
@@ -605,8 +619,8 @@ func connectToStreamingServer(streamID int, playlistID string) {
 	InitBuffer:
 		defaultSegment()
 
-		if len(m3u8Segments) > 30 {
-			m3u8Segments = m3u8Segments[15:]
+		if len(m3u8Segments) > m3u8SegmentDequeMax {
+			m3u8Segments = m3u8Segments[m3u8SegmentDequeTrim:]
 		}
 		if timeOut >= 10 {
 			return
@@ -616,7 +630,7 @@ func connectToStreamingServer(streamID int, playlistID string) {
 
 		if stream.Status == false {
 
-			if strings.Index(stream.URL, ".m3u8") != -1 {
+			if strings.Contains(stream.URL, ".m3u8") {
 				showInfo("Streaming Type:" + "[HLS / M3U8]")
 			} else {
 				showInfo("Streaming Type:" + "[TS]")
@@ -704,7 +718,7 @@ func connectToStreamingServer(streamID int, playlistID string) {
 
 						debug = fmt.Sprintf("HTTP Redirect:%s", stream.Location)
 						showDebug(debug, 2)
-						defer resp.Body.Close()
+						resp.Body.Close()
 						goto Redirect
 
 					} else {
@@ -713,7 +727,7 @@ func connectToStreamingServer(streamID int, playlistID string) {
 						ShowError(err, 4002)
 						addErrorToStream(err)
 
-						defer resp.Body.Close()
+						resp.Body.Close()
 
 						return
 
@@ -724,17 +738,13 @@ func connectToStreamingServer(streamID int, playlistID string) {
 					ShowError(err, 0)
 					addErrorToStream(err)
 
-					defer resp.Body.Close()
+					resp.Body.Close()
 
 					return
 
 				}
 
-				defer resp.Body.Close()
-
 			}
-
-			defer resp.Body.Close()
 
 			// HTTP Status überprüfen, bei Fehlern wird der Stream beendet
 			var contentType = resp.Header.Get("Content-Type")
@@ -807,7 +817,7 @@ func connectToStreamingServer(streamID int, playlistID string) {
 
 			// M3U8 Playlist
 			case "application/x-mpegurl", "application/vnd.apple.mpegurl", "audio/mpegurl", "audio/x-mpegurl":
-				body, err := ioutil.ReadAll(resp.Body)
+				body, err := io.ReadAll(resp.Body)
 				if err != nil {
 					ShowError(err, 0)
 					addErrorToStream(err)
@@ -877,8 +887,6 @@ func connectToStreamingServer(streamID int, playlistID string) {
 
 					}
 
-					defer resp.Body.Close()
-
 					if _, err := bufferFile.Write(buffer[:n]); err != nil {
 
 						ShowError(err, 0)
@@ -887,8 +895,6 @@ func connectToStreamingServer(streamID int, playlistID string) {
 						return
 
 					}
-
-					defer bufferFile.Close()
 
 					fileSize = fileSize + n
 
@@ -992,7 +998,7 @@ func connectToStreamingServer(streamID int, playlistID string) {
 					stream.TimeEnd = time.Now()
 					stream.TimeDiff = stream.TimeEnd.Sub(stream.TimeStart).Seconds()
 
-					sleep = (segment.Duration - stream.TimeDiff) - (segment.Duration * 0.25)
+					sleep = (segment.Duration - stream.TimeDiff) - (segment.Duration * hlsTimingHeadroomFactor)
 
 					if sleep < 0 {
 						sleep = 0
@@ -1003,15 +1009,13 @@ func connectToStreamingServer(streamID int, playlistID string) {
 
 					if sleep > 0 {
 
-						for i := 0.0; i < sleep*1000; i = i + 100 {
-
-							_ = i
-							time.Sleep(time.Duration(100) * time.Millisecond)
+						deadline := time.Now().Add(time.Duration(sleep * float64(time.Second)))
+						for time.Now().Before(deadline) {
+							time.Sleep(hlsPollingStepMS * time.Millisecond)
 
 							if _, err := os.Stat(stream.Folder); os.IsNotExist(err) {
 								break
 							}
-
 						}
 
 					}
@@ -1160,9 +1164,7 @@ func parseM3U8(stream *ThisStream) (err error) {
 		}
 
 		// Parameter parsen
-		for i, line := range lines {
-
-			_ = i
+		for _, line := range lines {
 
 			if len(line) > 0 {
 
@@ -1274,15 +1276,13 @@ func parseM3U8(stream *ThisStream) (err error) {
 
 		var sleep = lastSegmentDuration * 0.5
 
-		for i := 0.0; i < sleep*1000; i = i + 100 {
-
-			_ = i
-			time.Sleep(time.Duration(100) * time.Millisecond)
+		deadline := time.Now().Add(time.Duration(sleep * float64(time.Second)))
+		for time.Now().Before(deadline) {
+			time.Sleep(hlsPollingStepMS * time.Millisecond)
 
 			if _, err := os.Stat(stream.Folder); os.IsNotExist(err) {
 				break
 			}
-
 		}
 
 	}
@@ -1343,6 +1343,9 @@ func switchBandwidth(stream *ThisStream) (err error) {
 
 // Buffer mit FFMPEG
 func thirdPartyBuffer(streamID int, playlistID string) {
+
+	showDebug(fmt.Sprintf("Buffer Goroutine:START thirdPartyBuffer streamID=%d playlistID=%s", streamID, playlistID), 1)
+	defer showDebug(fmt.Sprintf("Buffer Goroutine:END thirdPartyBuffer streamID=%d playlistID=%s", streamID, playlistID), 1)
 
 	if p, ok := BufferInformation.Load(playlistID); ok {
 
@@ -1462,8 +1465,6 @@ func thirdPartyBuffer(streamID int, playlistID string) {
 		stdOut, err := cmd.StdoutPipe()
 		if err != nil {
 			ShowError(err, 0)
-			cmd.Process.Kill()
-			cmd.Wait()
 			addErrorToStream(err)
 			return
 		}
@@ -1472,8 +1473,6 @@ func thirdPartyBuffer(streamID int, playlistID string) {
 		logOut, err := cmd.StderrPipe()
 		if err != nil {
 			ShowError(err, 0)
-			cmd.Process.Kill()
-			cmd.Wait()
 			addErrorToStream(err)
 			return
 		}
@@ -1502,7 +1501,7 @@ func thirdPartyBuffer(streamID int, playlistID string) {
 					showInfo(debug)
 				}
 
-				time.Sleep(time.Duration(10) * time.Millisecond)
+				time.Sleep(thirdPartyBufferLogSleepMS * time.Millisecond)
 
 			}
 
@@ -1510,7 +1509,10 @@ func thirdPartyBuffer(streamID int, playlistID string) {
 
 		f, err = os.OpenFile(tmpFile, os.O_APPEND|os.O_WRONLY, 0600)
 		if err != nil {
-			panic(err)
+			ShowError(err, 0)
+			addErrorToStream(err)
+			cmd.Process.Kill()
+			return
 		}
 		defer f.Close()
 
@@ -1524,7 +1526,7 @@ func thirdPartyBuffer(streamID int, playlistID string) {
 
 			var timeout = 0
 			for {
-				time.Sleep(time.Duration(1000) * time.Millisecond)
+				time.Sleep(thirdPartyBufferTimeoutPollMS * time.Millisecond)
 				timeout++
 
 				select {
@@ -1542,12 +1544,11 @@ func thirdPartyBuffer(streamID int, playlistID string) {
 
 			select {
 			case timeout := <-t:
-				if timeout >= 20 && tmpSegment == 1 {
+				if timeout >= thirdPartyBufferStartupTimeoutSec && tmpSegment == 1 {
 					cmd.Process.Kill()
 					err = errors.New("Timout")
 					ShowError(err, 4006)
 					addErrorToStream(err)
-					cmd.Wait()
 					f.Close()
 					return
 				}
@@ -1563,7 +1564,6 @@ func thirdPartyBuffer(streamID int, playlistID string) {
 			if clientConnection(stream) == false {
 				cmd.Process.Kill()
 				f.Close()
-				cmd.Wait()
 				return
 			}
 
@@ -1578,7 +1578,6 @@ func thirdPartyBuffer(streamID int, playlistID string) {
 				cmd.Process.Kill()
 				ShowError(err, 0)
 				addErrorToStream(err)
-				cmd.Wait()
 				f.Close()
 				return
 			}
@@ -1606,15 +1605,11 @@ func thirdPartyBuffer(streamID int, playlistID string) {
 
 				fileSize = 0
 
-				var errCreate, errOpen error
-				f, errCreate = os.Create(tmpFile)
-				f, errOpen = os.OpenFile(tmpFile, os.O_APPEND|os.O_WRONLY, 0600)
-				if errCreate != nil || errOpen != nil {
+				f, err = os.Create(tmpFile)
+				if err != nil {
 					cmd.Process.Kill()
 					ShowError(err, 0)
 					addErrorToStream(err)
-					cmd.Wait()
-					f.Close()
 					return
 				}
 
@@ -1623,13 +1618,12 @@ func thirdPartyBuffer(streamID int, playlistID string) {
 		}
 
 		cmd.Process.Kill()
-		cmd.Wait()
 
 		err = errors.New(bufferType + " error")
 		addErrorToStream(err)
 		ShowError(err, 1204)
 
-		time.Sleep(time.Duration(500) * time.Millisecond)
+		time.Sleep(thirdPartyBufferRetryDelayMS * time.Millisecond)
 		clientConnection(stream)
 
 		return

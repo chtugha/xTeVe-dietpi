@@ -59,7 +59,7 @@ func SSDP() (err error) {
       case <-quit:
         adv.Bye()
         adv.Close()
-        os.Exit(0)
+        close(ShutdownChan)
         break loop
 
       }

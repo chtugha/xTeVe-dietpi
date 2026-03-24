@@ -345,8 +345,8 @@ class SettingsCategory {
         tdLeft.innerHTML = "{{.settings.bufferSize.title}}" + ":"
 
         var tdRight = document.createElement("TD")
-        var text:any[] = ["0.5 MB", "1 MB", "2 MB", "3 MB", "4 MB", "5 MB", "6 MB", "7 MB", "8 MB"]
-        var values:any[] = ["512", "1024", "2048", "3072", "4096", "5120", "6144", "7168", "8192"]
+        var text:any[] = ["0.5 MB", "1 MB", "2 MB", "4 MB", "8 MB", "16 MB", "32 MB", "64 MB", "128 MB"]
+        var values:any[] = ["512", "1024", "2048", "4096", "8192", "16384", "32768", "65536", "131072"]
 
         var select = content.createSelect(text, values, data, settingsKey)
         select.setAttribute("onchange", "javascript: this.className = 'changed'")

@@ -3,7 +3,6 @@ package imgcache
 import (
   "fmt"
   "io"
-  "io/ioutil"
   "net/http"
   "net/url"
   "os"
@@ -143,7 +142,7 @@ func New(path, chacheURL string, caching bool) (c *Cache, err error) {
     c.Lock()
     defer c.Unlock()
 
-    files, err := ioutil.ReadDir(c.path)
+    files, err := os.ReadDir(c.path)
     if err != nil {
       return
     }
@@ -165,7 +164,7 @@ func New(path, chacheURL string, caching bool) (c *Cache, err error) {
 
   }
 
-  files, err := ioutil.ReadDir(c.path)
+  files, err := os.ReadDir(c.path)
   if err != nil {
     return
   }

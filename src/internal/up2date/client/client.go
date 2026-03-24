@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net"
 	"net/http"
 	"net/url"
@@ -106,14 +106,14 @@ func serverRequest() (err error) {
 
 		if resp.StatusCode != http.StatusOK {
 			//fmt.Println(resp.StatusCode, Updater.URL, Updater.CMD)
-			err = fmt.Errorf(fmt.Sprintf("%d: %s (%s)", resp.StatusCode, http.StatusText(resp.StatusCode), Updater.URL))
+			err = fmt.Errorf("%d: %s (%s)", resp.StatusCode, http.StatusText(resp.StatusCode), Updater.URL)
 			return err
 		}
 
 		Updater.CMD = ""
 		defer resp.Body.Close()
 
-		body, _ := ioutil.ReadAll(resp.Body)
+		body, _ := io.ReadAll(resp.Body)
 
 		err = json.Unmarshal(body, &serverResponse)
 

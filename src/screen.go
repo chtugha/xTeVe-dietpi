@@ -10,6 +10,8 @@ import (
 	"time"
 )
 
+var screenLogMutex sync.RWMutex
+
 func showInfo(str string) {
 
 	if System.Flag.Info == true {
@@ -33,9 +35,11 @@ func showInfo(str string) {
 
 		printLogOnScreen(logMsg, "info")
 
+		screenLogMutex.Lock()
 		logMsg = strings.Replace(logMsg, " ", "&nbsp;", -1)
 		WebScreenLog.Log = append(WebScreenLog.Log, time.Now().Format("2006-01-02 15:04:05")+" "+logMsg)
 		logCleanUp()
+		screenLogMutex.Unlock()
 
 	}
 
@@ -52,7 +56,6 @@ func showDebug(str string, level int) {
 	var msg = strings.SplitN(str, ":", 2)
 	var length = len(msg[0])
 	var space string
-	var mutex = sync.RWMutex{}
 
 	if len(msg) == 2 {
 
@@ -65,11 +68,11 @@ func showDebug(str string, level int) {
 
 		printLogOnScreen(logMsg, "debug")
 
-		mutex.Lock()
+		screenLogMutex.Lock()
 		logMsg = strings.Replace(logMsg, " ", "&nbsp;", -1)
 		WebScreenLog.Log = append(WebScreenLog.Log, time.Now().Format("2006-01-02 15:04:05")+" "+logMsg)
 		logCleanUp()
-		mutex.Unlock()
+		screenLogMutex.Unlock()
 
 	}
 
@@ -112,14 +115,13 @@ func showWarning(errCode int) {
 
 	var errMsg = getErrMsg(errCode)
 	var logMsg = fmt.Sprintf("[%s] [WARNING] %s", System.Name, errMsg)
-	var mutex = sync.RWMutex{}
 
 	printLogOnScreen(logMsg, "warning")
 
-	mutex.Lock()
+	screenLogMutex.Lock()
 	WebScreenLog.Log = append(WebScreenLog.Log, time.Now().Format("2006-01-02 15:04:05")+" "+logMsg)
 	WebScreenLog.Warnings++
-	mutex.Unlock()
+	screenLogMutex.Unlock()
 
 	return
 }
@@ -127,17 +129,15 @@ func showWarning(errCode int) {
 // ShowError : Zeigt die Fehlermeldungen in der Konsole
 func ShowError(err error, errCode int) {
 
-	var mutex = sync.RWMutex{}
-
 	var errMsg = getErrMsg(errCode)
 	var logMsg = fmt.Sprintf("[%s] [ERROR] %s (%s) - EC: %d", System.Name, err, errMsg, errCode)
 
 	printLogOnScreen(logMsg, "error")
 
-	mutex.Lock()
+	screenLogMutex.Lock()
 	WebScreenLog.Log = append(WebScreenLog.Log, time.Now().Format("2006-01-02 15:04:05")+" "+logMsg)
 	WebScreenLog.Errors++
-	mutex.Unlock()
+	screenLogMutex.Unlock()
 
 	return
 }
@@ -323,7 +323,7 @@ func getErrMsg(errCode int) (errMsg string) {
 
 	// Tuner
 	case 2105:
-		errMsg = fmt.Sprintf("The number of tuners has changed, you have to delete " + System.Name + " in Plex / Emby HDHR and set it up again.")
+		errMsg = "The number of tuners has changed, you have to delete " + System.Name + " in Plex / Emby HDHR and set it up again."
 	case 2106:
 		errMsg = fmt.Sprintf("This function is only available with XEPG as EPG source")
 

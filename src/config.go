@@ -32,6 +32,9 @@ var BufferClients sync.Map
 // Lock : Lock Map
 var Lock = sync.RWMutex{}
 
+// ShutdownChan : Signals graceful shutdown to all listeners
+var ShutdownChan = make(chan struct{})
+
 // Init : Systeminitialisierung
 func Init() (err error) {
 

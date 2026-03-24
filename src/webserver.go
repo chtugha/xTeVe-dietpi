@@ -1,10 +1,11 @@
 package src
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"strconv"
@@ -20,18 +21,17 @@ func StartWebserver() (err error) {
 
 	var port = Settings.Port
 
-	http.HandleFunc("/", Index)
-	http.HandleFunc("/stream/", Stream)
-	http.HandleFunc("/xmltv/", xTeVe)
-	http.HandleFunc("/m3u/", xTeVe)
-	http.HandleFunc("/data/", WS)
-	http.HandleFunc("/web/", Web)
-	http.HandleFunc("/download/", Download)
-	http.HandleFunc("/api/", API)
-	http.HandleFunc("/images/", Images)
-	http.HandleFunc("/data_images/", DataImages)
-
-	//http.HandleFunc("/auto/", Auto)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", Index)
+	mux.HandleFunc("/stream/", Stream)
+	mux.HandleFunc("/xmltv/", xTeVe)
+	mux.HandleFunc("/m3u/", xTeVe)
+	mux.HandleFunc("/data/", WS)
+	mux.HandleFunc("/web/", Web)
+	mux.HandleFunc("/download/", Download)
+	mux.HandleFunc("/api/", API)
+	mux.HandleFunc("/images/", Images)
+	mux.HandleFunc("/data_images/", DataImages)
 
 	showInfo("DVR IP:" + System.IPAddress + ":" + Settings.Port)
 
@@ -39,21 +39,32 @@ func StartWebserver() (err error) {
 	switch ips {
 
 	case 0:
-		showHighlight(fmt.Sprintf("Web Interface:%s://%s:%s/web/", System.ServerProtocol.WEB, System.IPAddress, Settings.Port))
+		showHighlight("Web Interface:" + System.ServerProtocol.WEB + "://" + System.IPAddress + ":" + Settings.Port + "/web/")
 
 	case 1:
-		showHighlight(fmt.Sprintf("Web Interface:%s://%s:%s/web/ | xTeVe is also available via the other %d IP.", System.ServerProtocol.WEB, System.IPAddress, Settings.Port, ips))
+		showHighlight("Web Interface:" + System.ServerProtocol.WEB + "://" + System.IPAddress + ":" + Settings.Port + "/web/ | xTeVe is also available via the other 1 IP.")
 
 	default:
-		showHighlight(fmt.Sprintf("Web Interface:%s://%s:%s/web/ | xTeVe is also available via the other %d IP's.", System.ServerProtocol.WEB, System.IPAddress, Settings.Port, len(System.IPAddressesV4)+len(System.IPAddressesV6)-1))
+		showHighlight("Web Interface:" + System.ServerProtocol.WEB + "://" + System.IPAddress + ":" + Settings.Port + "/web/ | xTeVe is also available via the other " + strconv.Itoa(ips) + " IP's.")
 
 	}
 
-	if err = http.ListenAndServe(":"+port, nil); err != nil {
+	srv := &http.Server{
+		Addr:    ":" + port,
+		Handler: mux,
+	}
+
+	go func() {
+		<-ShutdownChan
+		srv.Shutdown(context.Background())
+	}()
+
+	if err = srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		ShowError(err, 1001)
 		return
 	}
 
+	err = nil
 	return
 }
 
@@ -142,7 +153,7 @@ func Stream(w http.ResponseWriter, r *http.Request) {
 		showInfo(fmt.Sprintf("Buffer:false [%s]", Settings.Buffer))
 
 	case "xteve":
-		if strings.Index(streamInfo.URL, "rtsp://") != -1 || strings.Index(streamInfo.URL, "rtp://") != -1 {
+		if strings.Contains(streamInfo.URL, "rtsp://") || strings.Contains(streamInfo.URL, "rtp://") {
 			err = errors.New("RTSP and RTP streams are not supported")
 			ShowError(err, 2004)
 
@@ -181,31 +192,6 @@ func Stream(w http.ResponseWriter, r *http.Request) {
 		bufferingStream(streamInfo.PlaylistID, streamInfo.URL, streamInfo.Name, w, r)
 
 	}
-
-	return
-}
-
-// Auto : HDHR routing (wird derzeit nicht benutzt)
-func Auto(w http.ResponseWriter, r *http.Request) {
-
-	var channelID = strings.Replace(r.RequestURI, "/auto/v", "", 1)
-	fmt.Println(channelID)
-
-	/*
-		switch Settings.Buffer {
-
-		case true:
-			var playlistID, streamURL, err = getStreamByChannelID(channelID)
-			if err == nil {
-				bufferingStream(playlistID, streamURL, w, r)
-			} else {
-				httpStatusError(w, r, 404)
-			}
-
-		case false:
-			httpStatusError(w, r, 423)
-		}
-	*/
 
 	return
 }
@@ -402,7 +388,6 @@ func WS(w http.ResponseWriter, r *http.Request) {
 				ShowError(err, 1022)
 			} else {
 				return
-				break
 			}
 			return
 
@@ -856,7 +841,7 @@ func API(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	b, err := ioutil.ReadAll(r.Body)
+	b, err := io.ReadAll(r.Body)
 	defer r.Body.Close()
 	if err != nil {
 		httpStatusError(w, r, 400)

@@ -1,30 +1,16 @@
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-var SettingsCategory = /** @class */ (function () {
-    function SettingsCategory() {
-        this.DocumentID = "content_settings";
-    }
-    SettingsCategory.prototype.createCategoryHeadline = function (value) {
+"use strict";
+class SettingsCategory {
+    DocumentID = "content_settings";
+    createCategoryHeadline(value) {
         var element = document.createElement("H4");
         element.innerHTML = value;
         return element;
-    };
-    SettingsCategory.prototype.createHR = function () {
+    }
+    createHR() {
         var element = document.createElement("HR");
         return element;
-    };
-    SettingsCategory.prototype.createSettings = function (settingsKey) {
+    }
+    createSettings(settingsKey) {
         var setting = document.createElement("TR");
         var content = new PopupContent();
         var data = SERVER["settings"][settingsKey];
@@ -285,8 +271,8 @@ var SettingsCategory = /** @class */ (function () {
                 var tdLeft = document.createElement("TD");
                 tdLeft.innerHTML = "{{.settings.bufferSize.title}}" + ":";
                 var tdRight = document.createElement("TD");
-                var text = ["0.5 MB", "1 MB", "2 MB", "3 MB", "4 MB", "5 MB", "6 MB", "7 MB", "8 MB"];
-                var values = ["512", "1024", "2048", "3072", "4096", "5120", "6144", "7168", "8192"];
+                var text = ["0.5 MB", "1 MB", "2 MB", "4 MB", "8 MB", "16 MB", "32 MB", "64 MB", "128 MB"];
+                var values = ["512", "1024", "2048", "4096", "8192", "16384", "32768", "65536", "131072"];
                 var select = content.createSelect(text, values, data, settingsKey);
                 select.setAttribute("onchange", "javascript: this.className = 'changed'");
                 tdRight.appendChild(select);
@@ -318,8 +304,8 @@ var SettingsCategory = /** @class */ (function () {
                 break;
         }
         return setting;
-    };
-    SettingsCategory.prototype.createDescription = function (settingsKey) {
+    }
+    createDescription(settingsKey) {
         var description = document.createElement("TR");
         var text;
         switch (settingsKey) {
@@ -413,19 +399,17 @@ var SettingsCategory = /** @class */ (function () {
         description.appendChild(tdLeft);
         description.appendChild(tdRight);
         return description;
-    };
-    return SettingsCategory;
-}());
-var SettingsCategoryItem = /** @class */ (function (_super) {
-    __extends(SettingsCategoryItem, _super);
-    function SettingsCategoryItem(headline, settingsKeys) {
-        var _this = _super.call(this) || this;
-        _this.headline = headline;
-        _this.settingsKeys = settingsKeys;
-        return _this;
     }
-    SettingsCategoryItem.prototype.createCategory = function () {
-        var _this = this;
+}
+class SettingsCategoryItem extends SettingsCategory {
+    headline;
+    settingsKeys;
+    constructor(headline, settingsKeys) {
+        super();
+        this.headline = headline;
+        this.settingsKeys = settingsKeys;
+    }
+    createCategory() {
         var headline = this.createCategoryHeadline(this.headline);
         var settingsKeys = this.settingsKeys;
         var doc = document.getElementById(this.DocumentID);
@@ -433,7 +417,7 @@ var SettingsCategoryItem = /** @class */ (function (_super) {
         // Tabelle für die Kategorie erstellen
         var table = document.createElement("TABLE");
         var keys = settingsKeys.split(",");
-        keys.forEach(function (settingsKey) {
+        keys.forEach(settingsKey => {
             switch (settingsKey) {
                 case "authentication.pms":
                 case "authentication.m3u":
@@ -443,8 +427,8 @@ var SettingsCategoryItem = /** @class */ (function (_super) {
                         break;
                     }
                 default:
-                    var item = _this.createSettings(settingsKey);
-                    var description = _this.createDescription(settingsKey);
+                    var item = this.createSettings(settingsKey);
+                    var description = this.createDescription(settingsKey);
                     table.appendChild(item);
                     table.appendChild(description);
                     break;
@@ -452,12 +436,11 @@ var SettingsCategoryItem = /** @class */ (function (_super) {
         });
         doc.appendChild(table);
         doc.appendChild(this.createHR());
-    };
-    return SettingsCategoryItem;
-}(SettingsCategory));
+    }
+}
 function showSettings() {
     console.log("SETTINGS");
-    for (var i = 0; i < settingsCategory.length; i++) {
+    for (let i = 0; i < settingsCategory.length; i++) {
         settingsCategory[i].createCategory();
     }
 }
@@ -467,7 +450,7 @@ function saveSettings() {
     var div = document.getElementById("content_settings");
     var settings = div.getElementsByClassName("changed");
     var newSettings = new Object();
-    for (var i = 0; i < settings.length; i++) {
+    for (let i = 0; i < settings.length; i++) {
         var name;
         var value;
         switch (settings[i].tagName) {
