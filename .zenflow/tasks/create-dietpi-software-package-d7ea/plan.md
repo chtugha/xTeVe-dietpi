@@ -334,7 +334,8 @@ No tests exist for this function; verify by `go build ./...` and `go vet ./...`.
 
 ---
 
-### [ ] Step 6: CI/CD — GitHub Actions release workflow
+### [x] Step 6: CI/CD — GitHub Actions release workflow
+<!-- chat-id: 915fa0c0-70ee-47d5-8aaf-b7c17a44a1ae -->
 
 **Scope**: `.github/workflows/build.yml` (new)
 
@@ -390,7 +391,8 @@ jobs:
 
 ---
 
-### [ ] Step 7: Documentation — DietPi package guide and developer guide
+### [x] Step 7: Documentation — DietPi package guide and developer guide
+<!-- chat-id: 52fcb87f-7f0f-48e7-a2c2-26b598e37295 -->
 
 **Scope**: `docs/dietpi-package.md` (new), `docs/development.md` (new), Go doc comments on public functions
 

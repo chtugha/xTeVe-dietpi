@@ -35,7 +35,10 @@ var Lock = sync.RWMutex{}
 // ShutdownChan : Signals graceful shutdown to all listeners
 var ShutdownChan = make(chan struct{})
 
-// Init : Systeminitialisierung
+// Init initialises the xTeVe system before the web server starts. It sets up
+// folder paths, creates required directories, loads settings from disk, resolves
+// the host IP, initialises SSDP, and loads the embedded HTML assets. Init must
+// be called exactly once at startup before any other package-level function.
 func Init() (err error) {
 
 	var debug string
@@ -217,7 +220,10 @@ func Init() (err error) {
 	return
 }
 
-// StartSystem : System wird gestartet
+// StartSystem loads provider data (M3U playlists, XMLTV files, HDHomeRun
+// devices), builds the internal DVR channel database, and regenerates the XEPG
+// output files. Call with updateProviderFiles = true to force a provider data
+// refresh regardless of the configured update schedule.
 func StartSystem(updateProviderFiles bool) (err error) {
 
 	setDeviceID()

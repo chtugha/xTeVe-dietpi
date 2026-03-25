@@ -6,7 +6,11 @@ import (
 	"time"
 )
 
-// InitMaintenance : Wartungsprozess initialisieren
+// InitMaintenance starts the background maintenance goroutine that runs once
+// per minute. It handles scheduled M3U/XMLTV provider refreshes (based on the
+// times configured in Settings.Update), automatic backups, and the periodic
+// binary update check. A randomised update time is chosen at startup to
+// distribute update-check load across users.
 func InitMaintenance() (err error) {
 
 	System.TimeForAutoUpdate = fmt.Sprintf("0%d%d", randomTime(0, 2), randomTime(10, 59))

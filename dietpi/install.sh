@@ -43,6 +43,8 @@ install -m 0644 "$SERVICE_SRC" "$SERVICE_DEST"
 systemctl daemon-reload
 systemctl enable --now xteve
 
-if G_WHIP_YESNO 'Would you like to install FFmpeg for stream buffering/re-encoding?\n\nThis is only required when "Buffer" is set to "FFmpeg" in xTeVe settings.'; then
-    G_DIETPI-INSTALL_SOFTWARE 7
+if command -v G_WHIP_YESNO &>/dev/null; then
+    if G_WHIP_YESNO 'Would you like to install FFmpeg for stream buffering/re-encoding?\n\nThis is only required when "Buffer" is set to "FFmpeg" in xTeVe settings.'; then
+        G_DIETPI-INSTALL_SOFTWARE 7
+    fi
 fi

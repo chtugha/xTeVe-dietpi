@@ -16,7 +16,9 @@ import (
 	"xteve/src"
 )
 
-// GitHubStruct : GitHub Account. Über diesen Account werden die Updates veröffentlicht
+// GitHubStruct holds the GitHub repository coordinates used by the self-updater
+// to check for and download new releases. Branch, User, and Repo together
+// identify the GitHub repository; Update enables or disables the update check.
 type GitHubStruct struct {
 	Branch string
 	Repo   string
@@ -24,27 +26,29 @@ type GitHubStruct struct {
 	User   string
 }
 
-// GitHub : GitHub Account
-// If you want to fork this project, enter your Github account here. This prevents a newer version of xTeVe from updating your version.
+// GitHub is the GitHub repository reference for update checks and binary
+// downloads. User and Repo point to the fork that publishes CI release assets.
+// Set Update to false to disable the self-updater entirely.
 var GitHub = GitHubStruct{Branch: "master", User: "whisper", Repo: "xTeVe-dietpi", Update: true}
 
-/*
-	Branch: GitHub Branch
-	User: 	GitHub Username
-	Repo: 	GitHub Repository
-	Update: Automatic updates from the GitHub repository [true|false]
-*/
-
-// Name : Programmname
+// Name is the human-readable application name used in log output, UI labels,
+// and the HDHomeRun device advertisement.
 const Name = "xTeVe"
 
-// Version : Version, die Build Nummer wird in der main func geparst.
+// Version is the full application version string in the form
+// "MAJOR.MINOR.PATCH.BUILD". The build number (last segment) is separated at
+// startup and stored in src.System.Build. Declared as var so the Go linker's
+// -X flag can inject the version from a git tag at compile time (e.g., via
+// make build or the CI workflow).
 var Version = "2.2.0.0200"
 
-// DBVersion : Datanbank Version
+// DBVersion is the settings database schema version understood by this build.
+// Settings files with a higher version will be rejected; files with a lower
+// (but compatible) version are migrated automatically.
 const DBVersion = "2.1.0"
 
-// APIVersion : API Version
+// APIVersion is the version of the xTeVe HTTP API exposed to Plex, Emby, and
+// third-party integrations.
 const APIVersion = "1.1.0"
 
 var homeDirectory = fmt.Sprintf("%s%s.%s%s", src.GetUserHomeDirectory(), string(os.PathSeparator), strings.ToLower(Name), string(os.PathSeparator))

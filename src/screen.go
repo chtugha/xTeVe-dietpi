@@ -362,7 +362,7 @@ func getErrMsg(errCode int) (errMsg string) {
 		errMsg = fmt.Sprintf("xTeVe update available")
 
 	case 6005:
-		errMsg = fmt.Sprintf("XteveAutoUpdate is enabled on DietPi. The binary will be replaced outside of dietpi-software. To manage xTeVe via DietPi, disable XteveAutoUpdate in Settings.")
+		errMsg = "XteveAutoUpdate is enabled on DietPi. The binary will be replaced outside of dietpi-software. To manage xTeVe via DietPi, disable XteveAutoUpdate in Settings."
 
 	default:
 		errMsg = fmt.Sprintf("Unknown error / warning (%d)", errCode)

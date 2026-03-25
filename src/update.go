@@ -13,7 +13,15 @@ import (
 	"reflect"
 )
 
-// BinaryUpdate : Binary Update Prozess. Git Branch master und beta wird von GitHub geladen.
+// BinaryUpdate checks whether a newer version of the xTeVe binary is available
+// and, if XteveAutoUpdate is enabled in settings, downloads and hot-swaps the
+// running binary. Update sources are determined by the active Git branch:
+//   - "master" / "beta": fetches release metadata and archives from GitHub.
+//   - any other branch: contacts the custom update server URL in settings.
+//
+// On DietPi (DIETPI=1), auto-update defaults to disabled. If the user has
+// explicitly opted in, a warning (6005) is logged before the update proceeds
+// to indicate that the binary will be replaced outside of dietpi-software.
 func BinaryUpdate() (err error) {
 
 	if !System.GitHub.Update {
