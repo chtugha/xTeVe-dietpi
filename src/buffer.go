@@ -174,9 +174,9 @@ func bufferingStream(playlistID, streamingURL, channelName string, w http.Respon
 					var content string
 					content = GetHTMLString(value.(string))
 
-					w.WriteHeader(200)
 					w.Header().Set("Content-type", "video/mpeg")
 					w.Header().Set("Content-Length", "0")
+					w.WriteHeader(200)
 
 					for range [streamLimitLoopCount]struct{}{} {
 						w.Write([]byte(content))

@@ -120,7 +120,8 @@ Save to `.zenflow/tasks/create-dietpi-software-package-d7ea/plan.md`.
 
 ---
 
-### [ ] Step 2: Go source — fix deprecated rand.Seed in maintenance.go
+### [x] Step 2: Go source — fix deprecated rand.Seed in maintenance.go
+<!-- chat-id: 8b605345-969f-4b79-ad17-2defca3926bb -->
 
 **Scope**: `src/maintenance.go`
 
@@ -138,7 +139,8 @@ No tests exist for this function; verify by `go build ./...` and `go vet ./...`.
 
 ---
 
-### [ ] Step 3: Go source — remove osext dependency, add DietPi guards
+### [x] Step 3: Go source — remove osext dependency, add DietPi guards
+<!-- chat-id: 5f3f713c-cc9e-44a7-9d61-1bb9d4659f24 -->
 
 **Scope**: `src/internal/up2date/client/update.go`, `src/update.go`, `src/screen.go`, `src/system.go`, `xteve.go`, `go.mod`, `go.sum`
 
@@ -202,7 +204,8 @@ No tests exist for this function; verify by `go build ./...` and `go vet ./...`.
 
 ---
 
-### [ ] Step 4: Build system — Makefile and .gitignore
+### [x] Step 4: Build system — Makefile and .gitignore
+<!-- chat-id: ffd17c3a-750a-42f1-93d9-4408bc9022b6 -->
 
 **Scope**: `Makefile` (new), `.gitignore` (updated)
 
