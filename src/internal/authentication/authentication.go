@@ -351,12 +351,10 @@ func CheckTheValidityOfTheTokenFromHTTPHeader(w http.ResponseWriter, r *http.Req
     if cookie.Name == "Token" {
       var token string
       token, err = CheckTheValidityOfTheToken(cookie.Value)
-      //fmt.Println("T", token, err)
       writer = SetCookieToken(w, token)
       newToken = token
     }
   }
-  //fmt.Println(err)
   return
 }
 

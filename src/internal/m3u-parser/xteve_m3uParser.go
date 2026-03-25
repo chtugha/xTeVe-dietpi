@@ -143,7 +143,6 @@ func MakeInterfaceFromM3U(byteStream []byte) (allChannels []interface{}, err err
     return
   }
 
-  //fmt.Println(content)
   if strings.Contains(content, "#EXT-X-TARGETDURATION") || strings.Contains(content, "#EXT-X-MEDIA-SEQUENCE") {
     err = errors.New("Invalid M3U file, an extended M3U file is required.")
     return

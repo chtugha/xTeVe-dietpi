@@ -140,7 +140,10 @@ func loadSettings() (settings SettingsStruct, err error) {
 	defaults["xteveAutoUpdate"] = true
 	defaults["temp.path"] = System.Folder.Temp
 
-	// Default Werte setzen
+	if os.Getenv("DIETPI") == "1" {
+		defaults["xteveAutoUpdate"] = false
+	}
+
 	for key, value := range defaults {
 		if _, ok := settingsMap[key]; !ok {
 			settingsMap[key] = value

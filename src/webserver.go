@@ -494,7 +494,7 @@ func WS(w http.ResponseWriter, r *http.Request) {
 				if err == nil {
 
 					if len(newWebURL) > 0 {
-						response.Alert = "Backup was successfully restored.\nThe port of the sTeVe URL has changed, you have to restart xTeVe.\nAfter a restart, xTeVe can be reached again at the following URL:\n" + newWebURL
+						response.Alert = "Backup was successfully restored.\nThe port of the xTeVe URL has changed, you have to restart xTeVe.\nAfter a restart, xTeVe can be reached again at the following URL:\n" + newWebURL
 					} else {
 						response.Alert = "Backup was successfully restored."
 						response.Reload = true
@@ -541,13 +541,7 @@ func WS(w http.ResponseWriter, r *http.Request) {
 					response.Reload = true
 			*/
 		default:
-			fmt.Println("+ + + + + + + + + + +", request.Cmd)
-
-			var requestMap = make(map[string]interface{}) // Debug
-			_ = requestMap
-			if System.Dev == true {
-				fmt.Println(mapToJSON(requestMap))
-			}
+			showDebug(fmt.Sprintf("Unhandled WebSocket command: %s", request.Cmd), 1)
 
 		}
 
@@ -879,7 +873,6 @@ func API(w http.ResponseWriter, r *http.Request) {
 
 		default:
 			token, err = tokenAuthentication(request.Token)
-			fmt.Println(err)
 			if err != nil {
 				responseAPIError(err)
 				return

@@ -68,14 +68,15 @@ func serverRequest() (err error) {
 		}
 		var server = u.Host
 
-		timeout := time.Duration(1 * time.Second)
-		_, err = net.DialTimeout("tcp", server, timeout)
+		_, err = net.DialTimeout("tcp", server, time.Second)
 		if err != nil {
 			return err
 		}
 
-		// Check redirect 301 <---> 308
 		redirect, err := http.NewRequest("POST", Updater.URL, nil)
+		if err != nil {
+			return err
+		}
 
 		client := &http.Client{}
 		client.CheckRedirect = func(redirect *http.Request, via []*http.Request) error {
@@ -83,7 +84,6 @@ func serverRequest() (err error) {
 		}
 
 		resp, err := client.Do(redirect)
-
 		if err != nil {
 			if resp != nil && resp.StatusCode >= 301 && resp.StatusCode <= 308 {
 				Updater.URL = resp.Header.Get("Location")
@@ -91,29 +91,34 @@ func serverRequest() (err error) {
 			} else {
 				return err
 			}
+		} else if resp != nil {
+			resp.Body.Close()
 		}
-		// ---
 
 		req, err := http.NewRequest("POST", Updater.URL, bytes.NewBuffer(jsonByte))
+		if err != nil {
+			return err
+		}
 		req.Header.Set("Content-Type", "application/json")
 
 		client = &http.Client{}
 		resp, err = client.Do(req)
-
 		if err != nil {
 			return err
 		}
+		defer resp.Body.Close()
 
 		if resp.StatusCode != http.StatusOK {
-			//fmt.Println(resp.StatusCode, Updater.URL, Updater.CMD)
 			err = fmt.Errorf("%d: %s (%s)", resp.StatusCode, http.StatusText(resp.StatusCode), Updater.URL)
 			return err
 		}
 
 		Updater.CMD = ""
-		defer resp.Body.Close()
 
-		body, _ := io.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
 
 		err = json.Unmarshal(body, &serverResponse)
 

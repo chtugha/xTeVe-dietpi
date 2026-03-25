@@ -21,14 +21,10 @@ func showInfo(str string) {
 	var max = 23
 	var msg = strings.SplitN(str, ":", 2)
 	var length = len(msg[0])
-	var space string
 
 	if len(msg) == 2 {
 
-		for i := length; i < max; i++ {
-			space = space + " "
-		}
-
+		space := strings.Repeat(" ", max-length)
 		msg[0] = msg[0] + ":" + space
 
 		var logMsg = fmt.Sprintf("[%s] %s%s", System.Name, msg[0], msg[1])
@@ -55,13 +51,10 @@ func showDebug(str string, level int) {
 	var max = 23
 	var msg = strings.SplitN(str, ":", 2)
 	var length = len(msg[0])
-	var space string
 
 	if len(msg) == 2 {
 
-		for i := length; i < max; i++ {
-			space = space + " "
-		}
+		space := strings.Repeat(" ", max-length)
 		msg[0] = msg[0] + ":" + space
 
 		var logMsg = fmt.Sprintf("[DEBUG] %s%s", msg[0], msg[1])
@@ -84,17 +77,13 @@ func showHighlight(str string) {
 	var max = 23
 	var msg = strings.SplitN(str, ":", 2)
 	var length = len(msg[0])
-	var space string
 
 	var notification Notification
 	notification.Type = "info"
 
 	if len(msg) == 2 {
 
-		for i := length; i < max; i++ {
-			space = space + " "
-		}
-
+		space := strings.Repeat(" ", max-length)
 		msg[0] = msg[0] + ":" + space
 
 		var logMsg = fmt.Sprintf("[%s] %s%s", System.Name, msg[0], msg[1])
@@ -184,23 +173,17 @@ func logCleanUp() {
 	var logEntriesRAM = Settings.LogEntriesRAM
 	var logs = WebScreenLog.Log
 
-	WebScreenLog.Warnings = 0
-	WebScreenLog.Errors = 0
-
 	if len(logs) > logEntriesRAM {
+		removed := logs[:len(logs)-logEntriesRAM]
+		for _, entry := range removed {
+			if strings.Contains(entry, "WARNING") {
+				WebScreenLog.Warnings--
+			}
+			if strings.Contains(entry, "ERROR") {
+				WebScreenLog.Errors--
+			}
+		}
 		logs = logs[len(logs)-logEntriesRAM:]
-	}
-
-	for _, log := range logs {
-
-		if strings.Contains(log, "WARNING") {
-			WebScreenLog.Warnings++
-		}
-
-		if strings.Contains(log, "ERROR") {
-			WebScreenLog.Errors++
-		}
-
 	}
 
 	WebScreenLog.Log = logs
@@ -378,6 +361,9 @@ func getErrMsg(errCode int) (errMsg string) {
 		errMsg = fmt.Sprintf("Update server not available")
 	case 6004:
 		errMsg = fmt.Sprintf("xTeVe update available")
+
+	case 6005:
+		errMsg = fmt.Sprintf("XteveAutoUpdate is enabled on DietPi. The binary will be replaced outside of dietpi-software. To manage xTeVe via DietPi, disable XteveAutoUpdate in Settings.")
 
 	default:
 		errMsg = fmt.Sprintf("Unknown error / warning (%d)", errCode)

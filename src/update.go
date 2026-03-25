@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 
 	up2date "xteve/src/internal/up2date/client"
 
@@ -60,6 +61,9 @@ func BinaryUpdate() (err error) {
 		}
 
 		body, err = io.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
 
 		err = json.Unmarshal(body, &git)
 		if err != nil {
@@ -82,7 +86,6 @@ func BinaryUpdate() (err error) {
 		}
 
 		showInfo("Update URL:" + updater.URL)
-		fmt.Println("-----------------")
 
 		// Versionsinformationen vom Server laden
 		err = up2date.GetVersion()
@@ -110,7 +113,11 @@ func BinaryUpdate() (err error) {
 	if updater.Response.Version > currentVersion && updater.Response.Status == true {
 
 		if Settings.XteveAutoUpdate == true {
-			// Update durchführen
+
+			if os.Getenv("DIETPI") == "1" {
+				showWarning(6005)
+			}
+
 			var fileType, url string
 
 			showInfo(fmt.Sprintf("Update Available:Version: %s", updater.Response.Version))

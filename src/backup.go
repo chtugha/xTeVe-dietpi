@@ -172,10 +172,6 @@ func xteveRestore(archive string) (newWebURL string, err error) {
 
   if newPort == oldPort {
 
-    if err != nil {
-      ShowError(err, 0)
-    }
-
     loadSettings()
 
     err := Init()
@@ -266,7 +262,7 @@ func XteveRestoreFromCLI(archive string) (err error) {
       return
     }
 
-    showHighlight(fmt.Sprintf("Restor:Backup was successfully restored. %s can now be started normally", System.Name))
+    showHighlight(fmt.Sprintf("Restore:Backup was successfully restored. %s can now be started normally", System.Name))
 
   }
   return

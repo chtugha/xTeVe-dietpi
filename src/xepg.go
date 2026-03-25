@@ -751,7 +751,6 @@ func getProgramData(xepgChannel XEPGChannelStruct) (xepgXML XMLTV, err error) {
 	for _, xmltvProgram := range xmltv.Program {
 
 		if xmltvProgram.Channel == channelID {
-			//fmt.Println(&channelID)
 			var program = &Program{}
 
 			// Channel ID
@@ -1030,8 +1029,6 @@ func createM3UFile() {
 // XEPG Datenbank bereinigen
 func cleanupXEPG() {
 
-	//fmt.Println(Settings.Files.M3U)
-
 	var sourceIDs []string
 
 	for source := range Settings.Files.M3U {
@@ -1091,8 +1088,6 @@ func getStreamByChannelID(channelID string) (playlistID, streamURL string, err e
 
 		var xepgChannel XEPGChannelStruct
 		err := json.Unmarshal([]byte(mapToJSON(dxc)), &xepgChannel)
-
-		fmt.Println(xepgChannel.XChannelID)
 
 		if err == nil {
 

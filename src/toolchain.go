@@ -51,20 +51,13 @@ func checkFile(filename string) (err error) {
 
 	var file = getPlatformFile(filename)
 
-	if _, err = os.Stat(file); os.IsNotExist(err) {
-		return err
-	}
-
 	fi, err := os.Stat(file)
 	if err != nil {
 		return err
 	}
 
-	switch mode := fi.Mode(); {
-	case mode.IsDir():
+	if fi.IsDir() {
 		err = fmt.Errorf("%s: %s", file, getErrMsg(1072))
-	case mode.IsRegular():
-		break
 	}
 
 	return
@@ -312,7 +305,7 @@ func resolveHostIP() (err error) {
 
 				System.IPAddressesV4 = append(System.IPAddressesV4, ip)
 
-				if !networkIP.IP.IsLoopback() && ip[0:7] != "169.254" {
+				if !networkIP.IP.IsLoopback() && !networkIP.IP.IsLinkLocalUnicast() {
 					System.IPAddress = ip
 				}
 

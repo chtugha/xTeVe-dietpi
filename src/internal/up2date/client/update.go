@@ -12,8 +12,6 @@ import (
 	"runtime"
 	"strings"
 	"syscall"
-
-	"github.com/kardianos/osext"
 )
 
 // DoUpdate : Update binary
@@ -49,7 +47,10 @@ func DoUpdate(fileType, filenameBIN string) (err error) {
 		}
 
 		// Change binary filename to .filename
-		binary, err := osext.Executable()
+		binary, err := os.Executable()
+		if err != nil {
+			return err
+		}
 		var filename = getFilenameFromPath(binary)
 		var path = getPlatformPath(binary)
 		var oldBinary = path + "_old_" + filename
@@ -59,13 +60,12 @@ func DoUpdate(fileType, filenameBIN string) (err error) {
 		var tmpFolder = path + "tmp"
 		var tmpFile = tmpFolder + string(os.PathSeparator) + filenameBIN
 
-		//fmt.Println(binary, path+"."+filename)
 		os.Rename(newBinary, oldBinary)
 
 		// Save the new binary with the old file name
 		out, err := os.Create(binary)
 		if err != nil {
-			restorOldBinary(oldBinary, newBinary)
+			restoreOldBinary(oldBinary, newBinary)
 			return err
 		}
 		defer out.Close()
@@ -74,7 +74,7 @@ func DoUpdate(fileType, filenameBIN string) (err error) {
 
 		_, err = io.Copy(out, resp.Body)
 		if err != nil {
-			restorOldBinary(oldBinary, newBinary)
+			restoreOldBinary(oldBinary, newBinary)
 			return err
 		}
 
@@ -91,7 +91,7 @@ func DoUpdate(fileType, filenameBIN string) (err error) {
 
 				log.Println("["+strings.ToUpper(fileType)+"]", "Unzip ZIP file...ERROR")
 
-				restorOldBinary(oldBinary, newBinary)
+				restoreOldBinary(oldBinary, newBinary)
 
 				return err
 			} else {
@@ -105,7 +105,7 @@ func DoUpdate(fileType, filenameBIN string) (err error) {
 				} else {
 
 					log.Println("["+strings.ToUpper(fileType)+"]", "Copy binary file...ERROR")
-					restorOldBinary(oldBinary, newBinary)
+					restoreOldBinary(oldBinary, newBinary)
 
 					return err
 				}
@@ -129,7 +129,7 @@ func DoUpdate(fileType, filenameBIN string) (err error) {
 			bin, err := os.Executable()
 
 			if err != nil {
-				restorOldBinary(oldBinary, newBinary)
+				restoreOldBinary(oldBinary, newBinary)
 				return err
 			}
 
@@ -143,17 +143,21 @@ func DoUpdate(fileType, filenameBIN string) (err error) {
 				proc.Wait()
 
 			} else {
-				restorOldBinary(oldBinary, newBinary)
+				restoreOldBinary(oldBinary, newBinary)
 			}
 
 		} else {
 
 			// Restart binary (Linux and UNIX)
-			file, _ := osext.Executable()
+			file, err := os.Executable()
+			if err != nil {
+				restoreOldBinary(oldBinary, newBinary)
+				return err
+			}
 			os.RemoveAll(oldBinary)
 			err = syscall.Exec(file, os.Args, os.Environ())
 			if err != nil {
-				restorOldBinary(oldBinary, newBinary)
+				restoreOldBinary(oldBinary, newBinary)
 				log.Fatal(err)
 				return err
 			}
@@ -168,7 +172,6 @@ func DoUpdate(fileType, filenameBIN string) (err error) {
 func start(args ...string) (p *os.Process, err error) {
 
 	if args[0], err = exec.LookPath(args[0]); err == nil {
-		//fmt.Println(args[0])
 		var procAttr os.ProcAttr
 		procAttr.Files = []*os.File{os.Stdin, os.Stdout, os.Stderr}
 		p, err := os.StartProcess(args[0], args, &procAttr)
@@ -182,7 +185,7 @@ func start(args ...string) (p *os.Process, err error) {
 	return nil, err
 }
 
-func restorOldBinary(oldBinary, newBinary string) {
+func restoreOldBinary(oldBinary, newBinary string) {
 	os.RemoveAll(newBinary)
 	os.Rename(oldBinary, newBinary)
 }
@@ -265,6 +268,10 @@ func extractZIP(archive, target string) (err error) {
 }
 
 func extractZIPFile(file *zip.File, path string) error {
+	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+		return err
+	}
+
 	fileReader, err := file.Open()
 	if err != nil {
 		return err

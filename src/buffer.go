@@ -73,7 +73,6 @@ func bufferingStream(playlistID, streamingURL, channelName string, w http.Respon
 	var timeOut = 0
 	var newStream = true
 
-	//w.Header().Set("Connection", "keep-alive")
 	w.Header().Set("Connection", "close")
 
 	// Überprüfen ob die Playlist schon verwendet wird
@@ -177,7 +176,7 @@ func bufferingStream(playlistID, streamingURL, channelName string, w http.Respon
 
 					w.WriteHeader(200)
 					w.Header().Set("Content-type", "video/mpeg")
-					w.Header().Set("Content-Length:", "0")
+					w.Header().Set("Content-Length", "0")
 
 					for range [streamLimitLoopCount]struct{}{} {
 						w.Write([]byte(content))
@@ -349,12 +348,9 @@ func bufferingStream(playlistID, streamingURL, channelName string, w http.Respon
 
 							if err == nil {
 
-								file.Seek(0, 0)
-
 								if streaming == false {
 
 									contentType := http.DetectContentType(buffer)
-									_ = contentType
 									w.Header().Set("Content-type", contentType)
 									w.Header().Set("Content-Length", "0")
 									w.Header().Set("Connection", "close")
@@ -383,7 +379,7 @@ func bufferingStream(playlistID, streamingURL, channelName string, w http.Respon
 
 							var fileToRemove = stream.Folder + oldSegments[0]
 							os.RemoveAll(getPlatformFile(fileToRemove))
-							oldSegments = append(oldSegments[:0], oldSegments[0+1:]...)
+							oldSegments = oldSegments[1:]
 
 						}
 
@@ -671,9 +667,12 @@ func connectToStreamingServer(streamID int, playlistID string) {
 		Redirect:
 
 			req, err := http.NewRequest("GET", currentURL, nil)
+			if err != nil {
+				addErrorToStream(err)
+				return
+			}
 			req.Header.Set("User-Agent", Settings.UserAgent)
 			req.Header.Set("Connection", "close")
-			//req.Header.Set("Range", "bytes=0-")
 			req.Header.Set("Accept", "*/*")
 			debugRequest(req)
 
@@ -693,7 +692,7 @@ func connectToStreamingServer(streamID int, playlistID string) {
 				if resp == nil {
 
 					err = errors.New("No response from streaming server")
-					fmt.Println("Current URL:", currentURL)
+					showDebug(fmt.Sprintf("Buffer Status:No response from %s", currentURL), 1)
 					ShowError(err, 0)
 
 					addErrorToStream(err)
@@ -1664,7 +1663,6 @@ func debugRequest(req *http.Request) {
 
 	var debug string
 
-	fmt.Println()
 	debug = "Request:* * * * * * BEGIN HTTP(S) REQUEST * * * * * * "
 	showDebug(debug, debugLevel)
 
@@ -1703,8 +1701,6 @@ func debugResponse(resp *http.Response) {
 	}
 
 	var debug string
-
-	fmt.Println()
 
 	debug = "Response:* * * * * * BEGIN RESPONSE * * * * * * "
 	showDebug(debug, debugLevel)
