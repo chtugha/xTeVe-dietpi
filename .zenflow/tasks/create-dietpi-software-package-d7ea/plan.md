@@ -431,7 +431,8 @@ jobs:
 
 ---
 
-### [ ] Step 8: Final verification — build, vet, test, and module cleanliness
+### [x] Step 8: Final verification — build, vet, test, and module cleanliness
+<!-- chat-id: 076e3d58-20ce-492b-a533-cee94d257003 -->
 
 **Scope**: whole repository
 
@@ -446,12 +447,12 @@ jobs:
 7. Run `bash -n dietpi/install.sh` and `bash -n dietpi/uninstall.sh` — Bash syntax OK
 8. Confirm `.gitignore` includes `build/`, `*.tar.gz`, `*.zip`, `dist/`
 9. Record results as inline checkboxes below:
-   - [ ] `go mod tidy` clean
-   - [ ] `go vet ./...` zero warnings
-   - [ ] `go build ./...` success
-   - [ ] `go test ./...` all pass
-   - [ ] `make build` success
-   - [ ] `make build-all` success
-   - [ ] `bash -n dietpi/install.sh` OK
-   - [ ] `bash -n dietpi/uninstall.sh` OK
-   - [ ] `.gitignore` entries confirmed
+   - [x] `go mod tidy` clean
+   - [x] `go vet ./...` zero warnings
+   - [x] `go build ./...` success
+   - [x] `go test ./...` all pass
+   - [x] `make build` success
+   - [x] `make build-all` success
+   - [x] `bash -n dietpi/install.sh` OK
+   - [x] `bash -n dietpi/uninstall.sh` OK
+   - [x] `.gitignore` entries confirmed
