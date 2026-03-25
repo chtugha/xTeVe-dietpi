@@ -85,9 +85,9 @@ func serverRequest() (err error) {
 		resp, err := client.Do(redirect)
 
 		if err != nil {
-			// Redirect
-			if resp.StatusCode >= 301 && resp.StatusCode <= 308 { //status code 301 <---> 308
+			if resp != nil && resp.StatusCode >= 301 && resp.StatusCode <= 308 {
 				Updater.URL = resp.Header.Get("Location")
+				resp.Body.Close()
 			} else {
 				return err
 			}

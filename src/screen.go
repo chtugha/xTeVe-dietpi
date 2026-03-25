@@ -188,13 +188,7 @@ func logCleanUp() {
 	WebScreenLog.Errors = 0
 
 	if len(logs) > logEntriesRAM {
-
-		var tmp = make([]string, 0)
-		for i := len(logs) - logEntriesRAM; i < logEntriesRAM; i++ {
-			tmp = append(tmp, logs[i])
-		}
-
-		logs = tmp
+		logs = logs[len(logs)-logEntriesRAM:]
 	}
 
 	for _, log := range logs {
