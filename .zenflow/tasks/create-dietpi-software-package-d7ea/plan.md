@@ -26,7 +26,8 @@ Focus on **what** the feature should do and **why**, not **how** it should be bu
 
 Save the PRD to `.zenflow/tasks/create-dietpi-software-package-d7ea/requirements.md`.
 
-### [ ] Step: Technical Specification
+### [x] Step: Technical Specification
+<!-- chat-id: 85d68483-2345-4b1f-9b82-1f8013d57f70 -->
 
 Create a technical specification based on the PRD in `.zenflow/tasks/create-dietpi-software-package-d7ea/requirements.md`.
 
