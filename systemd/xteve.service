@@ -1,0 +1,20 @@
+[Unit]
+Description=xTeVe M3U Proxy for Plex DVR and Emby Live TV
+Documentation=https://github.com/whisper/xTeVe-dietpi
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=xteve
+Group=xteve
+Environment="DIETPI=1"
+WorkingDirectory=/mnt/dietpi_userdata/xteve
+ExecStart=/usr/local/bin/xteve --config /mnt/dietpi_userdata/xteve/
+Restart=on-failure
+RestartSec=5s
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

@@ -271,7 +271,8 @@ No tests exist for this function; verify by `go build ./...` and `go vet ./...`.
 
 ---
 
-### [ ] Step 5: DietPi integration — systemd service and install/uninstall scripts
+### [x] Step 5: DietPi integration — systemd service and install/uninstall scripts
+<!-- chat-id: c7ca1b7e-57ad-408e-8b47-2db9052efa4f -->
 
 **Scope**: `systemd/xteve.service` (new), `dietpi/install.sh` (new), `dietpi/uninstall.sh` (new)
 
