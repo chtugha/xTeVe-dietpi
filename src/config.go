@@ -49,16 +49,16 @@ func Init() (err error) {
 	System.ServerProtocol.M3U = "http"
 	System.ServerProtocol.WEB = "http"
 	System.ServerProtocol.XML = "http"
-	System.PlexChannelLimit = 480
-	System.UnfilteredChannelLimit = 480
-	System.Compatibility = "1.4.4"
+	System.PlexChannelLimit = plexChannelLimit
+	System.UnfilteredChannelLimit = unfilteredChannelLimit
+	System.Compatibility = minCompatibilityVersion
 
 	// FFmpeg Default Einstellungen
 	System.FFmpeg.DefaultOptions = "-hide_banner -loglevel error -i [URL] -c copy -f mpegts pipe:1"
 	System.VLC.DefaultOptions = "-I dummy [URL] --sout #std{mux=ts,access=file,dst=-}"
 
 	// Default Logeinträge, wird später von denen aus der settings.json überschrieben. Muss gemacht werden, damit die ersten Einträge auch im Log (webUI aangezeigt werden)
-	Settings.LogEntriesRAM = 500
+	Settings.LogEntriesRAM = defaultLogEntriesRAM
 
 	// Variablen für den Update Prozess
 	System.Update.Git = fmt.Sprintf("https://github.com/%s/%s/blob", System.GitHub.User, System.GitHub.Repo)

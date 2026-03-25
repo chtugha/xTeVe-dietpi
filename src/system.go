@@ -111,11 +111,11 @@ func loadSettings() (settings SettingsStruct, err error) {
 	defaults["authentication.pms"] = false
 	defaults["authentication.web"] = false
 	defaults["authentication.xml"] = false
-	defaults["backup.keep"] = 10
+	defaults["backup.keep"] = defaultBackupKeep
 	defaults["backup.path"] = System.Folder.Backup
 	defaults["buffer"] = "-"
-	defaults["buffer.size.kb"] = 1024
-	defaults["buffer.timeout"] = 500
+	defaults["buffer.size.kb"] = defaultBufferSizeKB
+	defaults["buffer.timeout"] = defaultBufferTimeoutMS
 	defaults["cache.images"] = false
 	defaults["epgSource"] = "PMS"
 	defaults["ffmpeg.options"] = System.FFmpeg.DefaultOptions
@@ -125,11 +125,11 @@ func loadSettings() (settings SettingsStruct, err error) {
 	defaults["filter"] = make(map[string]interface{})
 	defaults["git.branch"] = System.Branch
 	defaults["language"] = "en"
-	defaults["log.entries.ram"] = 500
-	defaults["mapping.first.channel"] = 1000
+	defaults["log.entries.ram"] = defaultLogEntriesRAM
+	defaults["mapping.first.channel"] = defaultMappingFirstChannel
 	defaults["xepg.replace.missing.images"] = true
-	defaults["m3u8.adaptive.bandwidth.mbps"] = 10
-	defaults["port"] = "34400"
+	defaults["m3u8.adaptive.bandwidth.mbps"] = defaultM3U8BandwidthMBPS
+	defaults["port"] = defaultPort
 	defaults["ssdp"] = true
 	defaults["tuner"] = 1
 	defaults["update"] = []string{"0000"}
@@ -193,7 +193,7 @@ func loadSettings() (settings SettingsStruct, err error) {
 func saveSettings(settings SettingsStruct) (err error) {
 
 	if settings.BackupKeep == 0 {
-		settings.BackupKeep = 10
+		settings.BackupKeep = defaultBackupKeep
 	}
 
 	if len(settings.BackupPath) == 0 {

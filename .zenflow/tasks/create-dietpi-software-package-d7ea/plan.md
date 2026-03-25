@@ -66,7 +66,8 @@ Save to `.zenflow/tasks/create-dietpi-software-package-d7ea/plan.md`.
 
 > **GitHub username gate (resolved)**: The working directory is `/Users/whisper/Documents/xTeVe-dietpi`; the host OS user is `whisper`. Based on this context the fork lives at `github.com/whisper/xTeVe-dietpi`. The `GitHub` struct in `xteve.go` must be updated to `User: "whisper", Repo: "xTeVe-dietpi"` so update checks and release downloads point to this fork's GitHub Releases. This is treated as a confirmed value; if incorrect the agent implementing Step 1 must correct it.
 
-### [ ] Step 1: Go source — named constants and dead code removal
+### [x] Step 1: Go source — named constants and dead code removal
+<!-- chat-id: 5704458e-d416-4f27-9f76-9cb2da0f04fe -->
 
 **Scope**: `src/constants.go` (new), `src/config.go`, `src/system.go`, `src/buffer.go`
 
