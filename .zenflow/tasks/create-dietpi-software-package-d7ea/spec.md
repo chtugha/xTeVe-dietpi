@@ -54,9 +54,10 @@ docs/
 | `src/constants.go` | **New** — named constants extracted from `src/config.go` and `src/system.go` |
 | `src/config.go` | Replace inline literals with constants from `src/constants.go`; remove commented-out dead code (lines 64, 168) |
 | `src/maintenance.go` | Replace `rand.Seed` + `math/rand` with `math/rand/v2` global functions (no seeding needed) |
-| `src/update.go` | Add `DIETPI` env-var check: skip `DoUpdate` call, log notice instead |
+| `src/system.go` | Replace inline literals with constants; add DietPi default override for `xteveAutoUpdate` (§3.5.1) |
+| `src/update.go` | Add `"os"` import; add `DIETPI` env-var warning in `BinaryUpdate()` (§3.5.2) |
 | `src/internal/up2date/client/update.go` | Replace `github.com/kardianos/osext` with `os.Executable()`; remove `osext` import |
-| `src/webserver.go` | Remove commented-out `Connection: keep-alive` header |
+| `src/buffer.go` | Remove commented-out `Connection: keep-alive` header (line 76) |
 | `xteve.go` | Update `GitHub` var to point to this fork's repo for update downloads |
 
 ---
@@ -113,6 +114,7 @@ Replace the literal values in `src/config.go`:
 - `System.PlexChannelLimit = 480` → `System.PlexChannelLimit = plexChannelLimit`
 - `System.UnfilteredChannelLimit = 480` → `System.UnfilteredChannelLimit = unfilteredChannelLimit`
 - `System.Compatibility = "1.4.4"` → `System.Compatibility = minCompatibilityVersion`
+- `Settings.LogEntriesRAM = 500` (line 61) → `Settings.LogEntriesRAM = defaultLogEntriesRAM`
 
 Replace the literal values in `src/system.go` `defaults` map:
 - `"backup.keep": 10` → `defaultBackupKeep`
@@ -138,9 +140,12 @@ Also replace in `src/system.go` `saveSettings`:
 //System.Folder.Temp = System.Folder.Temp + Settings.UUID + string(os.PathSeparator)
 ```
 
-**`src/webserver.go`** — Locate and remove any commented-out `Connection: keep-alive` header line in the buffer/stream handler section.
+**`src/buffer.go` line 76** — Remove the commented-out header:
+```go
+//w.Header().Set("Connection", "keep-alive")
+```
 
-> **Pre-implementation check**: The sibling `overhaul-cab5` task (all steps `[x]`) already touched `src/webserver.go` for graceful shutdown. Before applying this removal, verify with `grep -n "keep-alive" src/webserver.go` whether the dead code is still present. If it was already removed by that task, skip this sub-step.
+> **Note**: The sibling `overhaul-cab5` task touched `src/webserver.go` for graceful shutdown but this dead code is in `src/buffer.go`, not `src/webserver.go`. Verify with `grep -n "keep-alive" src/buffer.go` before applying.
 
 ### 3.3 `src/maintenance.go` — Deprecated `rand.Seed`
 
@@ -165,7 +170,24 @@ Replace `github.com/kardianos/osext` with `os.Executable()`:
 
 After this change, run `go mod tidy` to remove `osext` from `go.mod` and `go.sum`.
 
-### 3.5 `src/update.go` — DietPi Auto-Update Guard
+### 3.5 `src/update.go` and `src/system.go` — DietPi Auto-Update Guard
+
+#### 3.5.1 Default Override in `src/system.go`
+
+The upstream code defaults `xteveAutoUpdate` to `true` (see `defaults["xteveAutoUpdate"] = true` in `loadSettings`). Requirements §A-1 mandates that auto-update is **disabled by default on DietPi**. To satisfy this without breaking behaviour for non-DietPi users, add a conditional override in `loadSettings` **after** the defaults map is populated but **before** it is applied to `settingsMap`:
+
+```go
+// On DietPi, default to auto-update disabled (user can still opt in via settings).
+if os.Getenv("DIETPI") == "1" {
+    defaults["xteveAutoUpdate"] = false
+}
+```
+
+This requires adding `"os"` to the imports of `src/system.go`.
+
+The override only fires when the key is absent from the persisted `settings.json` (i.e., first run). Once the user explicitly sets the value in the web UI, their choice is persisted and the default is never consulted again.
+
+#### 3.5.2 DietPi Guard in `BinaryUpdate()`
 
 Requirements §A-1 states that users may opt in to the self-updater on DietPi by explicitly enabling `XteveAutoUpdate` in settings, understanding they bypass DietPi package management. The guard must therefore respect this explicit opt-in.
 
@@ -173,26 +195,29 @@ The correct behaviour, reconciling FR-5.6 and A-1:
 
 | `XteveAutoUpdate` | `DIETPI=1` | Result |
 |---|---|---|
-| `false` (default) | any | Skip update, log notice (existing path via `showWarning(6004)`) |
-| `true` | not set | Perform update (existing path) |
-| `true` | `1` | Log a prominent DietPi warning, then proceed with update (user explicitly opted in) |
+| `false` (default on DietPi; see §3.5.1) | any | Skip update, log notice (existing path via `showWarning(6004)`) |
+| `true` (explicit user opt-in on DietPi) | `1` | Log a prominent DietPi warning, then proceed with update |
+| `true` (default on non-DietPi) | not set | Perform update (existing path) |
 
 Implementation: in `BinaryUpdate()`, inside the `Settings.XteveAutoUpdate == true` branch, **before** calling `up2date.DoUpdate(...)`:
 
 ```go
 // Warn when running under DietPi — user has explicitly opted in.
 if os.Getenv("DIETPI") == "1" {
-    showWarning(6005) // new warning: self-update on DietPi bypasses package management
+    showWarning(6005)
 }
 // DoUpdate proceeds regardless — explicit opt-in is honoured.
 ```
 
-Add warning message `6005` to `src/screen.go` (the `getWarningMsg` / `showWarning` lookup):
-```
-6005: "XteveAutoUpdate is enabled on DietPi. The binary will be replaced outside of dietpi-software. To manage xTeVe via DietPi, disable XteveAutoUpdate in Settings."
+This requires adding `"os"` to the imports of `src/update.go` (not currently imported).
+
+Add warning message `6005` to `src/screen.go` in the `getErrMsg` switch, between the existing `case 6004:` (line 385) and the `default:` (line 388):
+```go
+case 6005:
+    errMsg = fmt.Sprintf("XteveAutoUpdate is enabled on DietPi. The binary will be replaced outside of dietpi-software. To manage xTeVe via DietPi, disable XteveAutoUpdate in Settings.")
 ```
 
-This preserves the update path for opt-in users while making the risk visible, and the default (`XteveAutoUpdate = false`) remains safe on DietPi with no code change needed there.
+This preserves the update path for opt-in users while making the risk visible, and the default (`XteveAutoUpdate = false` on DietPi via §3.5.1) remains safe with no additional guard needed.
 
 ### 3.6 `systemd/xteve.service` — Service Unit File
 
@@ -343,9 +368,10 @@ No changes to the HTTP API, WebSocket protocol, settings JSON schema, or XEPG/M3
 The only runtime-observable behaviour changes are:
 
 - **Auto-update on DietPi** — governed by the §3.5 decision table:
-  - `XteveAutoUpdate=false` (default) + `DIETPI=1`: update is skipped; existing warning `6004` is emitted. No binary is downloaded. This is the same path as non-DietPi with auto-update disabled; no code change required for this row.
-  - `XteveAutoUpdate=true` + `DIETPI=1`: warning `6005` is emitted and the update proceeds normally — binary is downloaded and the process is replaced via `syscall.Exec`. The user has explicitly opted in and accepted the consequences.
-  - `XteveAutoUpdate=true` + `DIETPI` unset: update proceeds unchanged (existing behaviour).
+  - `XteveAutoUpdate=false` (default on DietPi via §3.5.1) + any: update is skipped; existing warning `6004` is emitted. No binary is downloaded.
+  - `XteveAutoUpdate=true` (explicit user opt-in on DietPi) + `DIETPI=1`: warning `6005` is emitted and the update proceeds — binary is downloaded and the process is replaced via `syscall.Exec`. The user has explicitly opted in and accepted the consequences.
+  - `XteveAutoUpdate=true` (default on non-DietPi) + `DIETPI` unset: update proceeds unchanged (existing behaviour).
+- **DietPi default override** — `loadSettings` in `src/system.go` now conditionally sets `defaults["xteveAutoUpdate"] = false` when `DIETPI=1`, so a fresh DietPi install has auto-update disabled out of the box. Existing installs with a persisted `settings.json` are not affected.
 - **All configuration defaults** are semantically identical to before; only the source (named constant vs. inline literal) changes.
 
 ---
@@ -373,7 +399,7 @@ xTeVe-dietpi/
 │   ├── maintenance.go         # math/rand/v2, no rand.Seed
 │   ├── system.go              # literals → constants
 │   ├── update.go              # DIETPI env guard
-│   ├── webserver.go           # commented-out header removed
+│   ├── buffer.go              # commented-out header removed
 │   ├── internal/
 │   │   └── up2date/
 │   │       └── client/
