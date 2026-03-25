@@ -29,7 +29,7 @@ type GitHubStruct struct {
 // GitHub is the GitHub repository reference for update checks and binary
 // downloads. User and Repo point to the fork that publishes CI release assets.
 // Set Update to false to disable the self-updater entirely.
-var GitHub = GitHubStruct{Branch: "master", User: "whisper", Repo: "xTeVe-dietpi", Update: true}
+var GitHub = GitHubStruct{Branch: "master", User: "chtugha", Repo: "xTeVe-dietpi", Update: true}
 
 // Name is the human-readable application name used in log output, UI labels,
 // and the HDHomeRun device advertisement.

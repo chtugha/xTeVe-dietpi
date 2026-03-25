@@ -694,14 +694,14 @@ func saveWizard(request RequestStruct) (nextStep int, err error) {
 				err = getProviderData(key, dataID)
 
 				if err != nil {
-					ShowError(err, 000)
+					ShowError(err, 0)
 					delete(filesMap, dataID)
 					return
 				}
 
 				err = buildDatabaseDVR()
 				if err != nil {
-					ShowError(err, 000)
+					ShowError(err, 0)
 					delete(filesMap, dataID)
 					return
 				}
@@ -718,7 +718,7 @@ func saveWizard(request RequestStruct) (nextStep int, err error) {
 
 				if err != nil {
 
-					ShowError(err, 000)
+					ShowError(err, 0)
 					delete(filesMap, dataID)
 					return
 
@@ -915,19 +915,19 @@ func buildDatabaseDVR() (err error) {
 
 			}
 
-			if tvgID == 0 {
+			if tvgID == 0 || len(channels) == 0 {
 				compatibility["tvg.id"] = 0
 			} else {
 				compatibility["tvg.id"] = int(tvgID * 100 / len(channels))
 			}
 
-			if groupTitle == 0 {
+			if groupTitle == 0 || len(channels) == 0 {
 				compatibility["group.title"] = 0
 			} else {
 				compatibility["group.title"] = int(groupTitle * 100 / len(channels))
 			}
 
-			if uuid == 0 {
+			if uuid == 0 || len(channels) == 0 {
 				compatibility["stream.id"] = 0
 			} else {
 				compatibility["stream.id"] = int(uuid * 100 / len(channels))
@@ -943,7 +943,7 @@ func buildDatabaseDVR() (err error) {
 
 	for group, count := range tmpGroupsM3U {
 		var text = fmt.Sprintf("%s (%d)", group, count)
-		var value = fmt.Sprintf("%s", group)
+		var value = group
 		Data.Playlist.M3U.Groups.Text = append(Data.Playlist.M3U.Groups.Text, text)
 		Data.Playlist.M3U.Groups.Value = append(Data.Playlist.M3U.Groups.Value, value)
 	}

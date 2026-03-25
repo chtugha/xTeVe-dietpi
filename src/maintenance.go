@@ -38,7 +38,7 @@ func maintenance() {
 					// Backup erstellen
 					err := xTeVeAutoBackup()
 					if err != nil {
-						ShowError(err, 000)
+						ShowError(err, 0)
 					}
 
 					// Playlist und XMLTV Dateien aktualisieren
@@ -52,7 +52,7 @@ func maintenance() {
 					// Datenbank für DVR erstellen
 					err = buildDatabaseDVR()
 					if err != nil {
-						ShowError(err, 000)
+						ShowError(err, 0)
 					}
 
 					if !Settings.CacheImages && System.ImageCachingInProgress == 0 {

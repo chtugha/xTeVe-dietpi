@@ -88,7 +88,7 @@ func getProviderData(fileType, fileID string) (err error) {
 		// Datei extrahieren
 		body, err = extractGZIP(body, fileSource)
 		if err != nil {
-			ShowError(err, 000)
+			ShowError(err, 0)
 			return
 		}
 
@@ -201,7 +201,7 @@ func getProviderData(fileType, fileID string) (err error) {
 
 		if err != nil {
 
-			ShowError(err, 000)
+			ShowError(err, 0)
 			var downloadErr = err
 
 			if !newProvider {

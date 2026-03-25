@@ -57,4 +57,8 @@ const (
 	// websocketBufferSize is the read/write buffer size for WebSocket upgrades, in bytes.
 	// Default value: 1024.
 	websocketBufferSize = 1024
+
+	// logLabelPadWidth is the column width used for label alignment in log output.
+	// Default value: 23.
+	logLabelPadWidth = 23
 )

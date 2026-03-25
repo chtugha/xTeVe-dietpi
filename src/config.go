@@ -189,8 +189,8 @@ func Init() (err error) {
 		System.Branch = "master"
 	}
 
-	showInfo(fmt.Sprintf("GitHub:https://github.com/%s", System.GitHub.User))
-	showInfo(fmt.Sprintf("Git Branch:%s [%s]", System.Branch, System.GitHub.User))
+	showInfo(fmt.Sprintf("GitHub:https://github.com/%s/%s", System.GitHub.User, System.GitHub.Repo))
+	showInfo(fmt.Sprintf("Git Branch:%s [%s/%s]", System.Branch, System.GitHub.User, System.GitHub.Repo))
 
 	// Domainnamen setzten
 	setGlobalDomain(fmt.Sprintf("%s:%s", System.IPAddress, Settings.Port))

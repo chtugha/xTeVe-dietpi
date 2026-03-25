@@ -133,9 +133,6 @@ func buildXEPG(background bool) {
 
 				System.ScanInProgress = 0
 
-				// Cache löschen
-				//Data.Cache.XMLTV = make(map[string]XMLTV)
-				//Data.Cache.XMLTV = nil
 				runtime.GC()
 
 			}()
@@ -191,9 +188,6 @@ func updateXEPG(background bool) {
 
 	}
 
-	// Cache löschen
-	//Data.Cache.XMLTV = nil //make(map[string]XMLTV)
-	//Data.Cache.XMLTV = make(map[string]XMLTV)
 
 	return
 }
@@ -238,7 +232,7 @@ func createXEPGMapping() {
 				Data.XMLTV.Files = append(Data.XMLTV.Files, Data.XMLTV.Files[i+1:]...)
 				var errMsg = err.Error()
 				err = errors.New(getProviderParameter(fileID, "xmltv", "name") + ": " + errMsg)
-				ShowError(err, 000)
+				ShowError(err, 0)
 			}
 
 			// XML Parsen (Provider Datei)
@@ -828,7 +822,7 @@ func createDummyProgram(xepgChannel XEPGChannelStruct) (dummyXMLTV XMLTV) {
 	var dl = strings.Split(xepgChannel.XMapping, "_")
 	dummyLength, err := strconv.Atoi(dl[0])
 	if err != nil {
-		ShowError(err, 000)
+		ShowError(err, 0)
 		return
 	}
 
@@ -1013,7 +1007,7 @@ func createM3UFile() {
 	showInfo("XEPG:" + fmt.Sprintf("Create M3U file (%s)", System.File.M3U))
 	_, err := buildM3U([]string{})
 	if err != nil {
-		ShowError(err, 000)
+		ShowError(err, 0)
 	}
 
 	saveMapToJSONFile(System.File.URLS, Data.Cache.StreamingURLS)
@@ -1061,7 +1055,7 @@ func cleanupXEPG() {
 
 	err := saveMapToJSONFile(System.File.XEPG, Data.XEPG.Channels)
 	if err != nil {
-		ShowError(err, 000)
+		ShowError(err, 0)
 		return
 	}
 

@@ -96,7 +96,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 
 			_, err := basicAuth(r, "authentication.pms")
 			if err != nil {
-				ShowError(err, 000)
+				ShowError(err, 0)
 				httpStatusError(w, r, 403)
 				return
 			}
@@ -239,7 +239,7 @@ func xTeVe(w http.ResponseWriter, r *http.Request) {
 
 		content, err = buildM3U(groups)
 		if err != nil {
-			ShowError(err, 000)
+			ShowError(err, 0)
 		}
 
 	}
@@ -247,7 +247,7 @@ func xTeVe(w http.ResponseWriter, r *http.Request) {
 	// Authentifizierung überprüfen
 	err = urlAuth(r, requestType)
 	if err != nil {
-		ShowError(err, 000)
+		ShowError(err, 0)
 		httpStatusError(w, r, 403)
 		return
 	}
@@ -478,7 +478,7 @@ func WS(w http.ResponseWriter, r *http.Request) {
 
 				newWebURL, err := xteveRestoreFromWeb(request.Base64)
 				if err != nil {
-					ShowError(err, 000)
+					ShowError(err, 0)
 					response.Alert = err.Error()
 				}
 
@@ -570,7 +570,7 @@ func Web(w http.ResponseWriter, r *http.Request) {
 
 		lang, err = loadJSONFileToMap(fmt.Sprintf("html/lang/%s.json", Settings.Language))
 		if err != nil {
-			ShowError(err, 000)
+			ShowError(err, 0)
 		}
 
 	} else {
@@ -586,7 +586,7 @@ func Web(w http.ResponseWriter, r *http.Request) {
 
 	err = json.Unmarshal([]byte(mapToJSON(lang)), &language)
 	if err != nil {
-		ShowError(err, 000)
+		ShowError(err, 0)
 		return
 	}
 
@@ -684,7 +684,7 @@ func Web(w http.ResponseWriter, r *http.Request) {
 
 			allUserData, err := authentication.GetAllUserData()
 			if err != nil {
-				ShowError(err, 000)
+				ShowError(err, 0)
 				httpStatusError(w, r, 403)
 				return
 			}
@@ -975,7 +975,7 @@ func setDefaultResponseData(response ResponseStruct, data bool) (defaults Respon
 	switch System.Branch {
 
 	case "master":
-		defaults.ClientInfo.Version = fmt.Sprintf("%s", System.Version)
+		defaults.ClientInfo.Version = System.Version
 
 	default:
 		defaults.ClientInfo.Version = fmt.Sprintf("%s (%s)", System.Version, System.Build)

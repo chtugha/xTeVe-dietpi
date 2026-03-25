@@ -87,7 +87,7 @@ func bufferingStream(playlistID, streamingURL, channelName string, w http.Respon
 
 		err := checkFolder(playlist.Folder)
 		if err != nil {
-			ShowError(err, 000)
+			ShowError(err, 0)
 			httpStatusError(w, r, 404)
 			return
 		}
@@ -413,7 +413,7 @@ func getTmpFiles(stream *ThisStream) (tmpFiles []string) {
 
 		files, err := os.ReadDir(getPlatformPath(tmpFolder))
 		if err != nil {
-			ShowError(err, 000)
+			ShowError(err, 0)
 			return
 		}
 

@@ -1,30 +1,36 @@
 package src
 
 import (
-  b64 "encoding/base64"
-  "fmt"
-  "strings"
+	b64 "encoding/base64"
+	"errors"
+	"fmt"
+	"path/filepath"
+	"strings"
 )
 
 func uploadLogo(input, filename string) (logoURL string, err error) {
 
-  b64data := input[strings.IndexByte(input, ',')+1:]
+	if strings.ContainsAny(filename, "/\\") || filename != filepath.Base(filename) || filename == "." || filename == ".." {
+		err = errors.New("invalid filename")
+		return
+	}
 
-  // BAse64 in bytes umwandeln un speichern
-  sDec, err := b64.StdEncoding.DecodeString(b64data)
-  if err != nil {
-    return
-  }
+	b64data := input[strings.IndexByte(input, ',')+1:]
 
-  var file = fmt.Sprintf("%s%s", System.Folder.ImagesUpload, filename)
+	sDec, err := b64.StdEncoding.DecodeString(b64data)
+	if err != nil {
+		return
+	}
 
-  err = writeByteToFile(file, sDec)
-  if err != nil {
-    return
-  }
+	var file = System.Folder.ImagesUpload + filename
 
-  logoURL = fmt.Sprintf("%s://%s/data_images/%s", System.ServerProtocol.XML, System.Domain, filename)
+	err = writeByteToFile(file, sDec)
+	if err != nil {
+		return
+	}
 
-  return
+	logoURL = fmt.Sprintf("%s://%s/data_images/%s", System.ServerProtocol.XML, System.Domain, filename)
+
+	return
 
 }

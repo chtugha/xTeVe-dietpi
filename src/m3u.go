@@ -25,7 +25,7 @@ func parsePlaylist(filename, fileType string) (channels []interface{}, err error
 		case "m3u":
 			channels, err = m3u.MakeInterfaceFromM3U(content)
 		case "hdhr":
-			channels, err = makeInteraceFromHDHR(content, playlistName, id)
+			channels, err = makeInterfaceFromHDHR(content, playlistName, id)
 		}
 
 	}

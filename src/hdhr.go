@@ -7,7 +7,7 @@ import (
 	"fmt"
 )
 
-func makeInteraceFromHDHR(content []byte, playlistName, id string) (channels []interface{}, err error) {
+func makeInterfaceFromHDHR(content []byte, playlistName, id string) (channels []interface{}, err error) {
 
 	var hdhrData []interface{}
 
@@ -16,14 +16,26 @@ func makeInteraceFromHDHR(content []byte, playlistName, id string) (channels []i
 
 		for _, d := range hdhrData {
 
+			data, ok := d.(map[string]interface{})
+			if !ok {
+				continue
+			}
+
+			guideName, _ := data["GuideName"].(string)
+			url, _ := data["URL"].(string)
+			guideNumber, _ := data["GuideNumber"].(string)
+
+			if guideName == "" || url == "" {
+				continue
+			}
+
 			var channel = make(map[string]string)
-			var data = d.(map[string]interface{})
 
 			channel["group-title"] = playlistName
-			channel["name"] = data["GuideName"].(string)
-			channel["tvg-id"] = data["GuideName"].(string)
-			channel["url"] = data["URL"].(string)
-			channel["ID-"+id] = data["GuideNumber"].(string)
+			channel["name"] = guideName
+			channel["tvg-id"] = guideName
+			channel["url"] = url
+			channel["ID-"+id] = guideNumber
 			channel["_uuid.key"] = "ID-" + id
 			channel["_values"] = playlistName + " " + channel["name"]
 

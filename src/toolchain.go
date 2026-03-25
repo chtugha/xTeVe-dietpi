@@ -187,17 +187,11 @@ func mapToJSON(tmpMap interface{}) string {
 func jsonToMap(content string) map[string]interface{} {
 
 	var tmpMap = make(map[string]interface{})
-	json.Unmarshal([]byte(content), &tmpMap)
+	if err := json.Unmarshal([]byte(content), &tmpMap); err != nil {
+		ShowError(err, 0)
+	}
 
-	return (tmpMap)
-}
-
-func jsonToMapInt64(content string) map[int64]interface{} {
-
-	var tmpMap = make(map[int64]interface{})
-	json.Unmarshal([]byte(content), &tmpMap)
-
-	return (tmpMap)
+	return tmpMap
 }
 
 func jsonToInterface(content string) (tmpMap interface{}, err error) {
@@ -390,17 +384,6 @@ func indexOfString(element string, data []string) int {
 }
 
 func indexOfFloat64(element float64, data []float64) int {
-
-	for k, v := range data {
-		if element == v {
-			return (k)
-		}
-	}
-
-	return -1
-}
-
-func indexOfInt(element int, data []int) int {
 
 	for k, v := range data {
 		if element == v {
