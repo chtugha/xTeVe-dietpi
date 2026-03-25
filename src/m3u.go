@@ -114,18 +114,18 @@ func filterThisStream(s interface{}) (status bool) {
 			}
 		}
 
-		if match == true {
+		if match {
 
 			if len(exclude) > 0 {
 				var status = checkConditions(search, exclude, "exclude")
-				if status == false {
+				if !status {
 					return false
 				}
 			}
 
 			if len(include) > 0 {
 				var status = checkConditions(search, include, "include")
-				if status == false {
+				if !status {
 					return false
 				}
 			}
@@ -191,7 +191,7 @@ func buildM3U(groups []string) (m3u string, err error) {
 		err := json.Unmarshal([]byte(mapToJSON(dxc)), &xepgChannel)
 		if err == nil {
 
-			if xepgChannel.XActive == true {
+			if xepgChannel.XActive {
 
 				if len(groups) > 0 {
 

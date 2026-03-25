@@ -178,7 +178,7 @@ func Init() (err error) {
 	// Branch festlegen
 	System.Branch = Settings.Branch
 
-	if System.Dev == true {
+	if System.Dev {
 		System.Branch = "Development"
 	}
 
@@ -194,8 +194,8 @@ func Init() (err error) {
 
 	System.URLBase = fmt.Sprintf("%s://%s:%s", System.ServerProtocol.WEB, System.IPAddress, Settings.Port)
 
-	// HTML Dateien erstellen, mit dev == true werden die lokalen HTML Dateien verwendet
-	if System.Dev == true {
+	// HTML Dateien erstellen, mit dev werden die lokalen HTML Dateien verwendet
+	if System.Dev {
 
 		HTMLInit("webUI", "src", "html"+string(os.PathSeparator), "src"+string(os.PathSeparator)+"webUI.go")
 		err = BuildGoFile()
@@ -234,7 +234,7 @@ func StartSystem(updateProviderFiles bool) (err error) {
 	showInfo(fmt.Sprintf("Unfiltered Chan. Limit:%d", System.UnfilteredChannelLimit))
 
 	// Providerdaten aktualisieren
-	if len(Settings.Files.M3U) > 0 && Settings.FilesUpdate == true || updateProviderFiles == true {
+	if len(Settings.Files.M3U) > 0 && Settings.FilesUpdate || updateProviderFiles {
 
 		err = xTeVeAutoBackup()
 		if err != nil {

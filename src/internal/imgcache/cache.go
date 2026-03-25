@@ -50,7 +50,7 @@ func New(path, chacheURL string, caching bool) (c *Cache, err error) {
 
     src = strings.Trim(src, "\r\n")
 
-    if c.caching == false {
+    if !c.caching {
       return src
     }
 

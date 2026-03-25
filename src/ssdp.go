@@ -13,7 +13,7 @@ import (
 // SSDP : SSPD / DLNA Server
 func SSDP() (err error) {
 
-  if Settings.SSDP == false || System.Flag.Info == true {
+  if !Settings.SSDP || System.Flag.Info {
     return
   }
 
@@ -26,8 +26,8 @@ func SSDP() (err error) {
     fmt.Sprintf("upnp:rootdevice"),                           // send as "ST"
     fmt.Sprintf("uuid:%s::upnp:rootdevice", System.DeviceID), // send as "USN"
     fmt.Sprintf("%s/device.xml", System.URLBase),             // send as "LOCATION"
-    System.AppName, // send as "SERVER"
-    1800)           // send as "maxAge" in "CACHE-CONTROL"
+    System.AppName,  // send as "SERVER"
+    ssdpMaxAgeSec)   // send as "maxAge" in "CACHE-CONTROL"
 
   if err != nil {
     return
@@ -40,7 +40,7 @@ func SSDP() (err error) {
 
   go func(adv *ssdp.Advertiser) {
 
-    aliveTicker := time.NewTicker(300 * time.Second)
+    aliveTicker := time.NewTicker(ssdpAliveIntervalSec * time.Second)
     defer aliveTicker.Stop()
 
   loop:

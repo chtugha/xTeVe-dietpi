@@ -51,7 +51,7 @@ func maintenance() {
 						ShowError(err, 000)
 					}
 
-					if Settings.CacheImages == false && System.ImageCachingInProgress == 0 {
+					if !Settings.CacheImages && System.ImageCachingInProgress == 0 {
 						removeChildItems(System.Folder.ImagesCache)
 					}
 

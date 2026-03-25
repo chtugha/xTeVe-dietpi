@@ -16,7 +16,7 @@ import (
 // BinaryUpdate : Binary Update Prozess. Git Branch master und beta wird von GitHub geladen.
 func BinaryUpdate() (err error) {
 
-	if System.GitHub.Update == false {
+	if !System.GitHub.Update {
 		showWarning(2099)
 		return
 	}
@@ -110,9 +110,9 @@ func BinaryUpdate() (err error) {
 	var currentVersion = System.Version + "." + System.Build
 
 	// Versionsnummer überprüfen
-	if updater.Response.Version > currentVersion && updater.Response.Status == true {
+	if updater.Response.Version > currentVersion && updater.Response.Status {
 
-		if Settings.XteveAutoUpdate == true {
+		if Settings.XteveAutoUpdate {
 
 			if os.Getenv("DIETPI") == "1" {
 				showWarning(6005)

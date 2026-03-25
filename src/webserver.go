@@ -92,7 +92,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
 	case "/lineup.json":
-		if Settings.AuthenticationPMS == true {
+		if Settings.AuthenticationPMS {
 
 			_, err := basicAuth(r, "authentication.pms")
 			if err != nil {
@@ -227,7 +227,7 @@ func xTeVe(w http.ResponseWriter, r *http.Request) {
 		requestType = "m3u"
 		groupTitle = r.URL.Query().Get("group-title")
 
-		if System.Dev == false {
+		if !System.Dev {
 			// false: Dateiname wird im Header gesetzt
 			// true: M3U wird direkt im Browser angezeigt
 			w.Header().Set("Content-Disposition", "attachment; filename="+getFilenameFromPath(path))
@@ -315,14 +315,7 @@ func WS(w http.ResponseWriter, r *http.Request) {
 
 	var newToken string
 
-	/*
-		if r.Header.Get("Origin") != "http://"+r.Host {
-			httpStatusError(w, r, 403)
-			return
-		}
-	*/
-
-	conn, err := websocket.Upgrade(w, r, w.Header(), 1024, 1024)
+	conn, err := websocket.Upgrade(w, r, w.Header(), websocketBufferSize, websocketBufferSize)
 	if err != nil {
 		ShowError(err, 0)
 		http.Error(w, "Could not open websocket connection", http.StatusBadRequest)
@@ -339,7 +332,7 @@ func WS(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if System.ConfigurationWizard == false {
+		if !System.ConfigurationWizard {
 
 			switch Settings.AuthenticationWEB {
 
@@ -378,9 +371,7 @@ func WS(w http.ResponseWriter, r *http.Request) {
 		}
 
 		switch request.Cmd {
-		// Daten lesen
 		case "getServerConfig":
-			//response.Config = Settings
 
 		case "updateLog":
 			response = setDefaultResponseData(response, false)
@@ -392,9 +383,7 @@ func WS(w http.ResponseWriter, r *http.Request) {
 			return
 
 		case "loadFiles":
-			//response.Response = Settings.Files
 
-		// Daten schreiben
 		case "saveSettings":
 			var authenticationUpdate = Settings.AuthenticationWEB
 			response.Settings, err = updateServerSettings(request)
@@ -402,7 +391,7 @@ func WS(w http.ResponseWriter, r *http.Request) {
 
 				response.OpenMenu = strconv.Itoa(indexOfString("settings", System.WEB.Menu))
 
-				if Settings.AuthenticationWEB == true && authenticationUpdate == false {
+				if Settings.AuthenticationWEB && !authenticationUpdate {
 					response.Reload = true
 				}
 
@@ -535,12 +524,7 @@ func WS(w http.ResponseWriter, r *http.Request) {
 
 			}
 
-			/*
-				case "wizardCompleted":
-					System.ConfigurationWizard = false
-					response.Reload = true
-			*/
-		default:
+			default:
 			showDebug(fmt.Sprintf("Unhandled WebSocket command: %s", request.Cmd), 1)
 
 		}
@@ -552,7 +536,7 @@ func WS(w http.ResponseWriter, r *http.Request) {
 		}
 
 		response = setDefaultResponseData(response, true)
-		if System.ConfigurationWizard == true {
+		if System.ConfigurationWizard {
 			response.ConfigurationWizard = System.ConfigurationWizard
 		}
 
@@ -580,7 +564,7 @@ func Web(w http.ResponseWriter, r *http.Request) {
 
 	setGlobalDomain(r.Host)
 
-	if System.Dev == true {
+	if System.Dev {
 
 		lang, err = loadJSONFileToMap(fmt.Sprintf("html/lang/%s.json", Settings.Language))
 		if err != nil {
@@ -703,7 +687,7 @@ func Web(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			if len(allUserData) == 0 && Settings.AuthenticationWEB == true {
+			if len(allUserData) == 0 && Settings.AuthenticationWEB {
 				file = requestFile + "create-first-user.html"
 			}
 
@@ -743,7 +727,7 @@ func Web(w http.ResponseWriter, r *http.Request) {
 
 	contentType = getContentType(requestFile)
 
-	if System.Dev == true {
+	if System.Dev {
 		// Lokale Webserver Dateien werden geladen, nur für die Entwicklung
 		content, _ = readStringFromFile(requestFile)
 	}
@@ -825,7 +809,7 @@ func API(w http.ResponseWriter, r *http.Request) {
 
 	response.Status = true
 
-	if Settings.API == false {
+	if !Settings.API {
 		httpStatusError(w, r, 423)
 		return
 	}
@@ -851,7 +835,7 @@ func API(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("content-type", "application/json")
 
-	if Settings.AuthenticationAPI == true {
+	if Settings.AuthenticationAPI {
 		var token string
 		switch len(request.Token) {
 		case 0:
@@ -997,7 +981,7 @@ func setDefaultResponseData(response ResponseStruct, data bool) (defaults Respon
 
 	}
 
-	if data == true {
+	if data {
 
 		defaults.Users, _ = authentication.GetAllUserData()
 		//defaults.DVR = System.DVRAddress

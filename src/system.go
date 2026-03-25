@@ -13,7 +13,7 @@ import (
 // Entwicklerinfos anzeigen
 func showDevInfo() {
 
-	if System.Dev == true {
+	if System.Dev {
 
 		fmt.Print("\033[31m")
 		fmt.Println("* * * * * D E V   M O D E * * * * *")
@@ -213,7 +213,7 @@ func saveSettings(settings SettingsStruct) (err error) {
 
 	Settings = settings
 
-	if System.Dev == true {
+	if System.Dev {
 		Settings.UUID = "2019-01-DEV-xTeVe!"
 	}
 

@@ -14,7 +14,7 @@ var screenLogMutex sync.RWMutex
 
 func showInfo(str string) {
 
-	if System.Flag.Info == true {
+	if System.Flag.Info {
 		return
 	}
 
@@ -92,7 +92,6 @@ func showHighlight(str string) {
 
 	}
 
-	notification.Type = "info"
 	notification.Message = msg[1]
 
 	addNotification(notification)

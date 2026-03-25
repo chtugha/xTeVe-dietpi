@@ -11,7 +11,7 @@ import (
 
 func activatedSystemAuthentication() (err error) {
 
-	err = authentication.Init(System.Folder.Config, 60)
+	err = authentication.Init(System.Folder.Config, defaultSessionTimeoutMin)
 	if err != nil {
 		return
 	}
@@ -64,7 +64,7 @@ func createFirstUserForAuthentication(username, password string) (token string, 
 
 func tokenAuthentication(token string) (newToken string, err error) {
 
-	if System.ConfigurationWizard == true {
+	if System.ConfigurationWizard {
 		return
 	}
 
@@ -114,7 +114,7 @@ func urlAuth(r *http.Request, requestType string) (err error) {
 
 	case "m3u":
 		level = "authentication.m3u"
-		if Settings.AuthenticationM3U == true {
+		if Settings.AuthenticationM3U {
 			token, err = authentication.UserAuthentication(username, password)
 			if err != nil {
 				return
@@ -124,7 +124,7 @@ func urlAuth(r *http.Request, requestType string) (err error) {
 
 	case "xml":
 		level = "authentication.xml"
-		if Settings.AuthenticationXML == true {
+		if Settings.AuthenticationXML {
 			token, err = authentication.UserAuthentication(username, password)
 			if err != nil {
 				return
@@ -153,7 +153,7 @@ func checkAuthorizationLevel(token, level string) (err error) {
 
 		if v, ok := userData[level].(bool); ok {
 
-			if v == false {
+			if !v {
 				err = errors.New("No authorization")
 			}
 

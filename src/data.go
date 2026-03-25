@@ -57,10 +57,6 @@ func updateServerSettings(request RequestStruct) (settings SettingsStruct, err e
 
 				}
 
-				if len(newUpdateTimes) == 0 {
-					//newUpdateTimes = append(newUpdateTimes, "0000")
-				}
-
 				value = newUpdateTimes
 
 			case "cache.images":
@@ -149,7 +145,7 @@ func updateServerSettings(request RequestStruct) (settings SettingsStruct, err e
 		return
 	}
 
-	if Settings.AuthenticationWEB == false {
+	if !Settings.AuthenticationWEB {
 
 		Settings.AuthenticationAPI = false
 		Settings.AuthenticationM3U = false
@@ -191,7 +187,7 @@ func updateServerSettings(request RequestStruct) (settings SettingsStruct, err e
 
 		settings = Settings
 
-		if reloadData == true {
+		if reloadData {
 
 			err = buildDatabaseDVR()
 			if err != nil {
@@ -202,7 +198,7 @@ func updateServerSettings(request RequestStruct) (settings SettingsStruct, err e
 
 		}
 
-		if cacheImages == true {
+		if cacheImages {
 
 			if Settings.EpgSource == "XEPG" && System.ImageCachingInProgress == 0 {
 
@@ -241,7 +237,7 @@ func updateServerSettings(request RequestStruct) (settings SettingsStruct, err e
 
 		}
 
-		if createXEPGFiles == true {
+		if createXEPGFiles {
 
 			go func() {
 				createXMLTVFile()
@@ -344,7 +340,7 @@ func saveFiles(request RequestStruct, fileType string) (err error) {
 			return
 		}
 
-		if reloadData == true {
+		if reloadData {
 
 			err = buildDatabaseDVR()
 			if err != nil {
@@ -471,7 +467,7 @@ func saveFilter(request RequestStruct) (settings SettingsStruct, err error) {
 				if len(filter) == 0 {
 
 					err = errors.New(getErrMsg(1014))
-					if newFilter == true {
+					if newFilter {
 						delete(filterMap, dataID)
 					}
 
@@ -539,7 +535,7 @@ func saveXEpgMapping(request RequestStruct) (err error) {
 		// Wenn während des erstellen der Datanbank das Mapping erneut gespeichert wird, wird die Datenbank erst später erneut aktualisiert.
 		go func() {
 
-			if System.BackgroundProcess == true {
+			if System.BackgroundProcess {
 				return
 			}
 
@@ -598,7 +594,7 @@ func saveUserData(request RequestStruct) (err error) {
 			return
 		}
 
-		if request.DeleteUser == true {
+		if request.DeleteUser {
 			err = authentication.RemoveUser(userID)
 			return
 		}

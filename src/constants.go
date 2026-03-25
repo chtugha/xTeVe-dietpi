@@ -41,4 +41,20 @@ const (
 	// defaultMappingFirstChannel is the channel number assigned to the first
 	// mapped XEPG channel. Default value: 1000.
 	defaultMappingFirstChannel = 1000
+
+	// defaultSessionTimeoutMin is the web UI session timeout, in minutes.
+	// Default value: 60.
+	defaultSessionTimeoutMin = 60
+
+	// ssdpMaxAgeSec is the SSDP advertisement cache-control max-age, in seconds.
+	// Default value: 1800.
+	ssdpMaxAgeSec = 1800
+
+	// ssdpAliveIntervalSec is the interval between SSDP alive announcements, in seconds.
+	// Default value: 300.
+	ssdpAliveIntervalSec = 300
+
+	// websocketBufferSize is the read/write buffer size for WebSocket upgrades, in bytes.
+	// Default value: 1024.
+	websocketBufferSize = 1024
 )
