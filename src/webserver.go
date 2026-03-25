@@ -372,6 +372,7 @@ func WS(w http.ResponseWriter, r *http.Request) {
 
 		switch request.Cmd {
 		case "getServerConfig":
+			// no-op: handler not yet implemented; client receives default response
 
 		case "updateLog":
 			response = setDefaultResponseData(response, false)
@@ -383,6 +384,7 @@ func WS(w http.ResponseWriter, r *http.Request) {
 			return
 
 		case "loadFiles":
+			// no-op: handler not yet implemented; client receives default response
 
 		case "saveSettings":
 			var authenticationUpdate = Settings.AuthenticationWEB
