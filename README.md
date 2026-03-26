@@ -3,10 +3,14 @@
 </div>
 <br>
 
-# xTeVe
-## M3U Proxy for Plex DVR and Emby Live TV.  
+# xTeVe for dietpi
+## M3U Proxy for Plex DVR and Emby Live TV. Served via dietpi-software. 
 
-Documentation for setup and configuration is [here](https://github.com/xteve-project/xTeVe-Documentation/blob/master/en/configuration.md).
+Original documentation for setup and configuration is [here](https://github.com/xteve-project/xTeVe-Documentation/blob/master/en/configuration.md).
+
+Updated documentation for this fork is [here]([https://github.com/chtugha/xTeVe-dietpi/blob/master/docs/dietpi-package.md]).
+
+Development documentation for this fork is [here]([https://github.com/chtugha/xTeVe-dietpi/blob/master/docs/development.md]).
 
 #### Donation
 * **Bitcoin:** 1c1iCe4CJPfNUXtqxKBbW2Qd2EtqRPWme  
