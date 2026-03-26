@@ -1,14 +1,16 @@
-#!/bin/bash
-set -euo pipefail
+# xTeVe — DietPi-Software uninstall block
+#
+# This file is a REFERENCE IMPLEMENTATION showing the code that would be added
+# inside Uninstall_Software() in dietpi/dietpi-software for an upstream PR to
+# MichaIng/DietPi. It is NOT a standalone script — it is sourced by
+# dietpi-software and relies on its helper functions and variables.
+#
+# Software ID: TBD (assigned by DietPi maintainers)
 
-systemctl disable --now xteve || true
-
-rm -f /etc/systemd/system/xteve.service
-
-systemctl daemon-reload
-
-rm -f /usr/local/bin/xteve
-
-userdel xteve || true
-
-echo "Note: xTeVe user data in /mnt/dietpi_userdata/xteve/ has been preserved."
+# --- Uninstall_Software() block ---
+if To_Uninstall $software_id # xTeVe
+then
+	Remove_Service xteve 1
+	G_EXEC rm -f /usr/local/bin/xteve
+	G_EXEC rm -Rf /mnt/dietpi_userdata/xteve
+fi

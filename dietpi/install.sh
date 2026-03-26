@@ -1,42 +1,51 @@
-#!/bin/bash
-set -euo pipefail
+# xTeVe — DietPi-Software install block
+#
+# This file is a REFERENCE IMPLEMENTATION showing the code that would be added
+# inside Install_Software() in dietpi/dietpi-software for an upstream PR to
+# MichaIng/DietPi. It is NOT a standalone script — it is sourced by
+# dietpi-software and relies on its helper functions and variables.
+#
+# Software ID: TBD (assigned by DietPi maintainers)
+# Category: 2 (Media)
+# Dependencies: 7 (FFmpeg, optional — listed in aSOFTWARE_DEPS)
 
-trap 'rm -f /tmp/xteve' EXIT
+# --- Software_Arrays_Init() registration block ---
+# software_id=<TBD>
+# aSOFTWARE_NAME[$software_id]='xTeVe'
+# aSOFTWARE_DESC[$software_id]='M3U proxy for Plex DVR and Emby/Jellyfin Live TV'
+# aSOFTWARE_CATX[$software_id]=2
+# aSOFTWARE_DOCS[$software_id]='https://github.com/chtugha/xTeVe-dietpi'
 
-BINARY_DEST='/usr/local/bin/xteve'
-DATA_DIR='/mnt/dietpi_userdata/xteve'
-SERVICE_DEST='/etc/systemd/system/xteve.service'
+# --- Install_Software() block ---
+if To_Install $software_id xteve # xTeVe
+then
+	# Architecture mapping
+	case $G_HW_ARCH in
+		2) local arch='arm';;
+		3) local arch='arm64';;
+		*) local arch='amd64';;
+	esac
 
-ARCH=$(dpkg --print-architecture)
-case "$ARCH" in
-    armhf)       ARCH=arm ;;
-    amd64|arm64) ;;
-    *) echo "Unsupported architecture: $ARCH" >&2; exit 1 ;;
-esac
+	# Download binary
+	local fallback_url="https://github.com/chtugha/xTeVe-dietpi/releases/download/v2.2.0/xteve_linux_$arch"
+	Download_Install "$(curl -sSfL 'https://api.github.com/repos/chtugha/xTeVe-dietpi/releases/latest' | grep -Po "\"browser_download_url\": *\"\K[^\"]*\/xteve_linux_$arch(?=\")")" /usr/local/bin/xteve
 
-DOWNLOAD_URL="https://github.com/whisper/xTeVe-dietpi/releases/latest/download/xteve_linux_${ARCH}"
+	G_EXEC chmod +x /usr/local/bin/xteve
 
-echo "Downloading xTeVe binary for linux/${ARCH}..."
-curl -fsSL "$DOWNLOAD_URL" -o /tmp/xteve
-install -m 0755 /tmp/xteve "$BINARY_DEST"
+	# Data directory
+	G_EXEC mkdir -p /mnt/dietpi_userdata/xteve
 
-EXTRA_GROUPS=''
-getent group render &>/dev/null && EXTRA_GROUPS=',render' || true
-id -u xteve &>/dev/null || \
-    useradd --system \
-            --home-dir "$DATA_DIR" \
-            --shell /usr/sbin/nologin \
-            --groups "video${EXTRA_GROUPS}" \
-            xteve
+	# User
+	Create_User -G video -d /mnt/dietpi_userdata/xteve xteve
 
-mkdir -p "$DATA_DIR"
-chown xteve:xteve "$DATA_DIR"
-chmod 0750 "$DATA_DIR"
+	# Permissions
+	G_EXEC chown -R xteve:xteve /mnt/dietpi_userdata/xteve
 
-cat > "$SERVICE_DEST" << 'EOF'
+	# Service
+	cat << '_EOF_' > /etc/systemd/system/xteve.service
 [Unit]
-Description=xTeVe M3U Proxy for Plex DVR and Emby Live TV
-Documentation=https://github.com/whisper/xTeVe-dietpi
+Description=xTeVe M3U Proxy for Plex DVR and Emby Live TV (DietPi)
+Documentation=https://github.com/chtugha/xTeVe-dietpi
 After=network-online.target
 Wants=network-online.target
 
@@ -51,22 +60,10 @@ Restart=on-failure
 RestartSec=5s
 NoNewPrivileges=true
 PrivateTmp=true
+ProtectSystem=full
+ReadWritePaths=/mnt/dietpi_userdata/xteve
 
 [Install]
 WantedBy=multi-user.target
-EOF
-chmod 0644 "$SERVICE_DEST"
-
-systemctl daemon-reload
-systemctl enable --now xteve
-
-# G_WHIP_YESNO is a DietPi shell function available only when this script is
-# sourced inside dietpi-software's own environment. When invoked as a
-# subprocess (the typical case), declare -f will return non-zero and this
-# block is skipped. To install FFmpeg manually, run:
-#   dietpi-software install 7
-if declare -f G_WHIP_YESNO > /dev/null 2>&1; then
-    if G_WHIP_YESNO 'Would you like to install FFmpeg for stream buffering/re-encoding?\n\nThis is only required when "Buffer" is set to "FFmpeg" in xTeVe settings.'; then
-        G_DIETPI-INSTALL_SOFTWARE 7
-    fi
+_EOF_
 fi
