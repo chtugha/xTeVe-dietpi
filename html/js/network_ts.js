@@ -6,12 +6,12 @@ class Server {
         this.cmd = cmd;
     }
     request(data) {
-        if (SERVER_CONNECTION == true) {
-            return;
-        }
-        SERVER_CONNECTION = true;
-        console.log(data);
-        if (this.cmd != "updateLog") {
+        var isLogUpdate = (this.cmd == "updateLog");
+        if (!isLogUpdate) {
+            if (SERVER_CONNECTION == true) {
+                return;
+            }
+            SERVER_CONNECTION = true;
             showElement("loading", true);
             UNDO = new Object();
         }
@@ -28,25 +28,30 @@ class Server {
         var ws = new WebSocket(url);
         ws.onopen = function () {
             WS_AVAILABLE = true;
-            console.log("REQUEST (JS):");
-            console.log(data);
-            console.log("REQUEST: (JSON)");
-            console.log(JSON.stringify(data));
             this.send(JSON.stringify(data));
         };
         ws.onerror = function (e) {
             console.log("No websocket connection to xTeVe could be established. Check your network configuration.");
-            SERVER_CONNECTION = false;
+            if (!isLogUpdate) {
+                SERVER_CONNECTION = false;
+                showElement("loading", false);
+            }
             if (WS_AVAILABLE == false) {
                 alert("No websocket connection to xTeVe could be established. Check your network configuration.");
             }
         };
+        ws.onclose = function () {
+            if (!isLogUpdate) {
+                SERVER_CONNECTION = false;
+                showElement("loading", false);
+            }
+        };
         ws.onmessage = function (e) {
-            SERVER_CONNECTION = false;
-            showElement("loading", false);
-            console.log("RESPONSE:");
+            if (!isLogUpdate) {
+                SERVER_CONNECTION = false;
+                showElement("loading", false);
+            }
             var response = JSON.parse(e.data);
-            console.log(response);
             if (response.hasOwnProperty("token")) {
                 document.cookie = "Token=" + response["token"];
             }
@@ -70,7 +75,6 @@ class Server {
                         showLogs(false);
                     }
                     return;
-                    break;
                 default:
                     SERVER = new Object();
                     SERVER = response;
