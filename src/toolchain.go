@@ -14,10 +14,36 @@ import (
 	"os/user"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"text/template"
 	"time"
 )
+
+func compareVersions(a, b string) int {
+	partsA := strings.Split(a, ".")
+	partsB := strings.Split(b, ".")
+	maxLen := len(partsA)
+	if len(partsB) > maxLen {
+		maxLen = len(partsB)
+	}
+	for i := 0; i < maxLen; i++ {
+		var na, nb int
+		if i < len(partsA) {
+			na, _ = strconv.Atoi(partsA[i])
+		}
+		if i < len(partsB) {
+			nb, _ = strconv.Atoi(partsB[i])
+		}
+		if na < nb {
+			return -1
+		}
+		if na > nb {
+			return 1
+		}
+	}
+	return 0
+}
 
 // --- System Tools ---
 
@@ -131,8 +157,7 @@ func searchFileInOS(file string) (path string) {
 	switch runtime.GOOS {
 
 	case "linux", "darwin", "freebsd":
-		var args = file
-		var cmd = exec.Command("which", strings.Split(args, " ")...)
+		var cmd = exec.Command("which", file)
 
 		out, err := cmd.CombinedOutput()
 		if err == nil {
@@ -153,7 +178,6 @@ func searchFileInOS(file string) (path string) {
 	return
 }
 
-//
 func removeChildItems(dir string) error {
 
 	files, err := filepath.Glob(filepath.Join(dir, "*"))

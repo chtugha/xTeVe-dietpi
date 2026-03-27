@@ -69,7 +69,7 @@ func buildXEPG(background bool) {
 				createXMLTVFile()
 				createM3UFile()
 
-				showInfo("XEPG:" + fmt.Sprintf("Ready to use"))
+				showInfo("XEPG:Ready to use")
 
 				if Settings.CacheImages && System.ImageCachingInProgress == 0 {
 
@@ -129,7 +129,7 @@ func buildXEPG(background bool) {
 
 				}
 
-				showInfo("XEPG:" + fmt.Sprintf("Ready to use"))
+				showInfo("XEPG:Ready to use")
 
 				System.ScanInProgress = 0
 
@@ -171,7 +171,7 @@ func updateXEPG(background bool) {
 
 				createXMLTVFile()
 				createM3UFile()
-				showInfo("XEPG:" + fmt.Sprintf("Ready to use"))
+				showInfo("XEPG:Ready to use")
 
 				System.ScanInProgress = 0
 
@@ -305,17 +305,13 @@ func createXEPGDatabase() (err error) {
 
 	var createNewID = func() (xepg string) {
 
-		var firstID = 0 //len(Data.XEPG.Channels)
-
-	newXEPGID:
-
-		if _, ok := Data.XEPG.Channels["x-ID."+strconv.FormatInt(int64(firstID), 10)]; ok {
-			firstID++
-			goto newXEPGID
+		for firstID := 0; ; firstID++ {
+			key := "x-ID." + strconv.FormatInt(int64(firstID), 10)
+			if _, ok := Data.XEPG.Channels[key]; !ok {
+				xepg = key
+				return
+			}
 		}
-
-		xepg = "x-ID." + strconv.FormatInt(int64(firstID), 10)
-		return
 	}
 
 	var getFreeChannelNumber = func() (xChannelID string) {

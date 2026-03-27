@@ -118,7 +118,7 @@ func BinaryUpdate() (err error) {
 	var currentVersion = System.Version + "." + System.Build
 
 	// Versionsnummer überprüfen
-	if updater.Response.Version > currentVersion && updater.Response.Status {
+	if compareVersions(updater.Response.Version, currentVersion) > 0 && updater.Response.Status {
 
 		if Settings.XteveAutoUpdate {
 

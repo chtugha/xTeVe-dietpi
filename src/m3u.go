@@ -196,7 +196,7 @@ func buildM3U(groups []string) (m3u string, err error) {
 				if len(groups) > 0 {
 
 					if indexOfString(xepgChannel.XGroupTitle, groups) == -1 {
-						goto Done
+						continue
 					}
 
 				}
@@ -212,7 +212,6 @@ func buildM3U(groups []string) (m3u string, err error) {
 
 		}
 
-	Done:
 	}
 
 	// M3U Inhalt erstellen

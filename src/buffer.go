@@ -137,7 +137,6 @@ func bufferingStream(playlistID, streamingURL, channelName string, w http.Respon
 				newStream = false
 				client.Connection++
 
-				//playlist.Streams[streamID] = stream
 				playlist.Clients[streamID] = client
 
 				BufferInformation.Store(playlistID, playlist)

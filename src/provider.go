@@ -151,10 +151,9 @@ func getProviderData(fileType, fileID string) (err error) {
 			delete(data, "new")
 		}
 
-		// Wenn eine ID vorhanden ist und nicht mit der aus der Datanbank übereinstimmt, wird die Aktualisierung übersprungen (goto)
 		if len(fileID) > 0 && !newProvider {
 			if dataID != fileID {
-				goto Done
+				continue
 			}
 		}
 
@@ -269,7 +268,6 @@ func getProviderData(fileType, fileID string) (err error) {
 
 		saveSettings(Settings)
 
-	Done:
 	}
 
 	return

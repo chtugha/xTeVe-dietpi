@@ -132,7 +132,6 @@ func Index(w http.ResponseWriter, r *http.Request) {
 func Stream(w http.ResponseWriter, r *http.Request) {
 
 	var path = strings.Replace(r.RequestURI, "/stream/", "", 1)
-	//var stream = strings.SplitN(path, "-", 2)
 
 	streamInfo, err := getStreamInfo(path)
 	if err != nil {
@@ -378,8 +377,6 @@ func WS(w http.ResponseWriter, r *http.Request) {
 			response = setDefaultResponseData(response, false)
 			if err = conn.WriteJSON(response); err != nil {
 				ShowError(err, 1022)
-			} else {
-				return
 			}
 			return
 
@@ -476,14 +473,12 @@ func WS(w http.ResponseWriter, r *http.Request) {
 
 			if len(request.Base64) > 0 {
 
-				newWebURL, err := xteveRestoreFromWeb(request.Base64)
+				var newWebURL string
+				newWebURL, err = xteveRestoreFromWeb(request.Base64)
 				if err != nil {
 					ShowError(err, 0)
 					response.Alert = err.Error()
-				}
-
-				if err == nil {
-
+				} else {
 					if len(newWebURL) > 0 {
 						response.Alert = "Backup was successfully restored.\nThe port of the xTeVe URL has changed, you have to restart xTeVe.\nAfter a restart, xTeVe can be reached again at the following URL:\n" + newWebURL
 					} else {
@@ -986,7 +981,6 @@ func setDefaultResponseData(response ResponseStruct, data bool) (defaults Respon
 	if data {
 
 		defaults.Users, _ = authentication.GetAllUserData()
-		//defaults.DVR = System.DVRAddress
 
 		if Settings.EpgSource == "XEPG" {
 
@@ -1024,7 +1018,6 @@ func setDefaultResponseData(response ResponseStruct, data bool) (defaults Respon
 
 func httpStatusError(w http.ResponseWriter, r *http.Request, httpStatusCode int) {
 	http.Error(w, fmt.Sprintf("%s [%d]", http.StatusText(httpStatusCode), httpStatusCode), httpStatusCode)
-	return
 }
 
 func getContentType(filename string) (contentType string) {

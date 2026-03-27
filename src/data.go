@@ -542,7 +542,7 @@ func saveXEpgMapping(request RequestStruct) (err error) {
 			System.BackgroundProcess = true
 
 			for {
-				time.Sleep(time.Duration(1) * time.Second)
+				time.Sleep(time.Second)
 				if System.ScanInProgress == 0 {
 					break
 				}
@@ -553,7 +553,7 @@ func saveXEpgMapping(request RequestStruct) (err error) {
 			cleanupXEPG()
 			System.ScanInProgress = 0
 			buildXEPG(false)
-			showInfo("XEPG:" + fmt.Sprintf("Ready to use"))
+			showInfo("XEPG:Ready to use")
 
 			System.BackgroundProcess = false
 

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"runtime"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -355,7 +356,6 @@ func getErrMsg(errCode int) (errMsg string) {
 
 func addNotification(notification Notification) (err error) {
 
-	var i int
 	var t = time.Now().UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond))
 	notification.Time = strconv.FormatInt(t, 10)
 	notification.New = true
@@ -370,14 +370,15 @@ func addNotification(notification Notification) (err error) {
 
 	System.Notification[notification.Time] = notification
 
-	for key := range System.Notification {
-
-		if i < len(System.Notification)-10 {
+	if len(System.Notification) > 10 {
+		keys := make([]string, 0, len(System.Notification))
+		for key := range System.Notification {
+			keys = append(keys, key)
+		}
+		sort.Strings(keys)
+		for _, key := range keys[:len(keys)-10] {
 			delete(System.Notification, key)
 		}
-
-		i++
-
 	}
 
 	return

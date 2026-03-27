@@ -149,7 +149,7 @@ func xteveRestore(archive string) (newWebURL string, err error) {
   }
 
   backupVersion = newConfig["version"].(string)
-  if backupVersion < System.Compatibility {
+  if compareVersions(backupVersion, System.Compatibility) < 0 {
     err = errors.New(getErrMsg(1013))
     return
   }

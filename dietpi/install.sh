@@ -20,15 +20,20 @@
 if To_Install $software_id xteve # xTeVe
 then
 	# Architecture mapping
+	# G_HW_ARCH: 1=ARMv6, 2=ARMv7, 3=ARM64, 10=x86-64
 	case $G_HW_ARCH in
+		1) G_DIETPI-NOTIFY 1 'xTeVe does not provide ARMv6 binaries. Install on ARMv7 or newer.'; return 1;;
 		2) local arch='arm';;
 		3) local arch='arm64';;
 		*) local arch='amd64';;
 	esac
 
-	# Download binary
+	# Download binary — resolve latest release URL via GitHub API; fall back to a
+	# known-good pinned URL if the API call fails (rate-limited or offline).
+	local latest_url
+	latest_url="$(curl -sSfL 'https://api.github.com/repos/chtugha/xTeVe-dietpi/releases/latest' | grep -Po "\"browser_download_url\": *\"\K[^\"]*\/xteve_linux_$arch(?=\")")" || true
 	local fallback_url="https://github.com/chtugha/xTeVe-dietpi/releases/download/v2.2.0/xteve_linux_$arch"
-	Download_Install "$(curl -sSfL 'https://api.github.com/repos/chtugha/xTeVe-dietpi/releases/latest' | grep -Po "\"browser_download_url\": *\"\K[^\"]*\/xteve_linux_$arch(?=\")")" /usr/local/bin/xteve
+	Download_Install "${latest_url:-$fallback_url}" /usr/local/bin/xteve
 
 	G_EXEC chmod +x /usr/local/bin/xteve
 

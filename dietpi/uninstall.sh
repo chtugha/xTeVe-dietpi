@@ -12,5 +12,7 @@ if To_Uninstall $software_id # xTeVe
 then
 	Remove_Service xteve 1
 	G_EXEC rm -f /usr/local/bin/xteve
-	G_EXEC rm -Rf /mnt/dietpi_userdata/xteve
+	# User data is intentionally preserved at /mnt/dietpi_userdata/xteve/.
+	# Re-installing xTeVe will reuse the existing configuration and EPG database.
+	G_WHIP_MSG 'xTeVe has been removed.\n\nUser data at /mnt/dietpi_userdata/xteve/ has been preserved.\nDelete it manually if you no longer need it:\n  rm -rf /mnt/dietpi_userdata/xteve'
 fi

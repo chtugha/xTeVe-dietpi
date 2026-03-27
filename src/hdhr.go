@@ -212,23 +212,17 @@ func getGuideNumberPMS(channelName string) (pmsID string, err error) {
 
 	var getNewID = func(channelName string) (id string) {
 
-		var i int
-
-	newID:
-
 		var ids []string
-		id = fmt.Sprintf("id-%d", i)
-
 		for _, v := range Data.Cache.PMS {
 			ids = append(ids, v)
 		}
 
-		if indexOfString(id, ids) != -1 {
-			i++
-			goto newID
+		for i := 0; ; i++ {
+			id = fmt.Sprintf("id-%d", i)
+			if indexOfString(id, ids) == -1 {
+				return
+			}
 		}
-
-		return
 	}
 
 	if value, ok := Data.Cache.PMS[channelName]; ok {
