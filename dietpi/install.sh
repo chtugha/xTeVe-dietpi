@@ -76,5 +76,5 @@ _EOF_
 	G_EXEC systemctl enable --now xteve
 
 	# Register with dietpi-services for visibility in dietpi-launcher
-	grep -q '+xteve' /boot/dietpi/.dietpi-services_include_exclude 2>/dev/null || echo '+xteve' >> /boot/dietpi/.dietpi-services_include_exclude
+	grep -q '+ xteve' /boot/dietpi/.dietpi-services_include_exclude 2>/dev/null || echo '+ xteve' >> /boot/dietpi/.dietpi-services_include_exclude
 fi
