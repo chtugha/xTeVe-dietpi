@@ -212,6 +212,12 @@ class SettingsCategory {
                 input.checked = data;
                 input.setAttribute("onchange", "javascript: this.className = 'changed'");
                 tdRight.appendChild(input);
+                var btn = document.createElement("INPUT");
+                btn.setAttribute("type", "button");
+                btn.setAttribute("value", "Update xTeVe");
+                btn.setAttribute("style", "margin-left: 15px; padding: 2px 10px; cursor: pointer;");
+                btn.setAttribute("onclick", "javascript: updateXteveBinary();");
+                tdRight.appendChild(btn);
                 setting.appendChild(tdLeft);
                 setting.appendChild(tdRight);
                 break;

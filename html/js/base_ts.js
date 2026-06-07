@@ -480,3 +480,9 @@ function updateLog() {
     var server = new Server("updateLog");
     server.request(new Object());
 }
+function updateXteveBinary() {
+    if (confirm("Do you want to check for updates and update xTeVe?")) {
+        var server = new Server("xteveUpdate");
+        server.request(new Object());
+    }
+}

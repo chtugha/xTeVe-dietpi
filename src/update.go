@@ -7,11 +7,118 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"reflect"
+	"strings"
+	"time"
 
 	up2date "xteve/src/internal/up2date/client"
-
-	"reflect"
 )
+
+// BinaryUpdate checks whether a newer version of the xTeVe binary is available
+// and, if XteveAutoUpdate is enabled in settings, downloads and hot-swaps the
+// running binary. Update sources are determined by the active Git branch:
+//   - "master" / "beta": fetches release metadata and archives from GitHub.
+//   - any other branch: contacts the custom update server URL in settings.
+//
+// On DietPi (DIETPI=1), auto-update defaults to disabled. If the user has
+// explicitly opted in, a warning (6005) is logged before the update proceeds
+// to indicate that the binary will be replaced outside of dietpi-software.
+// fetchLatestReleaseInfo connects to GitHub or a custom server to get the latest version details
+func fetchLatestReleaseInfo(updater *up2date.ClientInfo) (err error) {
+	switch System.Branch {
+
+	// Update von GitHub
+	case "master", "beta":
+		var apiURL = fmt.Sprintf("https://api.github.com/repos/%s/%s/releases/latest", System.GitHub.User, System.GitHub.Repo)
+
+		req, err := http.NewRequest("GET", apiURL, nil)
+		if err != nil {
+			return err
+		}
+		req.Header.Set("User-Agent", "xTeVe-Updater")
+
+		client := &http.Client{Timeout: 15 * time.Second}
+		resp, err := client.Do(req)
+		if err != nil {
+			return err
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			return fmt.Errorf("%d: %s (%s)", resp.StatusCode, http.StatusText(resp.StatusCode), apiURL)
+		}
+
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+
+		type GitHubRelease struct {
+			TagName string `json:"tag_name"`
+			Assets  []struct {
+				Name        string `json:"name"`
+				DownloadURL string `json:"browser_download_url"`
+			} `json:"assets"`
+		}
+
+		var release GitHubRelease
+		err = json.Unmarshal(body, &release)
+		if err != nil {
+			return err
+		}
+
+		var downloadURL string
+		var assetName string
+		targetOS := strings.ToLower(System.OS)
+		targetArch := strings.ToLower(System.ARCH)
+
+		for _, asset := range release.Assets {
+			name := strings.ToLower(asset.Name)
+			if strings.HasPrefix(name, "xteve_") &&
+				strings.Contains(name, targetOS) &&
+				strings.Contains(name, targetArch) &&
+				!strings.HasSuffix(name, ".zip") &&
+				!strings.HasSuffix(name, ".tar.gz") &&
+				!strings.HasSuffix(name, ".tgz") &&
+				!strings.HasSuffix(name, ".md5") &&
+				!strings.HasSuffix(name, ".sha256") {
+				downloadURL = asset.DownloadURL
+				assetName = asset.Name
+				break
+			}
+		}
+
+		if len(downloadURL) == 0 {
+			return fmt.Errorf("no matching binary found in latest GitHub release assets for OS %s and ARCH %s", System.OS, System.ARCH)
+		}
+
+		updater.Response.Status = true
+		updater.Response.UpdateBIN = downloadURL
+		updater.Response.Version = strings.TrimPrefix(release.TagName, "v")
+		updater.Response.Filename = assetName
+
+	// Update vom eigenen Server
+	default:
+		updater.URL = Settings.UpdateURL
+
+		if len(updater.URL) == 0 {
+			return fmt.Errorf("no server URL specified in Settings.UpdateURL")
+		}
+
+		showInfo("Update URL:" + updater.URL)
+
+		err = up2date.GetVersion()
+		if err != nil {
+			return err
+		}
+
+		if len(updater.Response.Reason) > 0 {
+			return fmt.Errorf("update server: %s", updater.Response.Reason)
+		}
+	}
+
+	return nil
+}
 
 // BinaryUpdate checks whether a newer version of the xTeVe binary is available
 // and, if XteveAutoUpdate is enabled in settings, downloads and hot-swaps the
@@ -29,90 +136,16 @@ func BinaryUpdate() (err error) {
 		return
 	}
 
-	var debug string
-
 	var updater = &up2date.Updater
 	updater.Name = System.Update.Name
 	updater.Branch = System.Branch
 
 	up2date.Init()
 
-	switch System.Branch {
-
-	// Update von GitHub
-	case "master", "beta":
-
-		var gitInfo = fmt.Sprintf("%s/%s/info.json?raw=true", System.Update.Git, System.Branch)
-		var zipFile = fmt.Sprintf("%s/%s/%s_%s_%s.zip?raw=true", System.Update.Git, System.Branch, System.AppName, System.OS, System.ARCH)
-		var body []byte
-
-		var git GitStruct
-
-		resp, err := http.Get(gitInfo)
-		if err != nil {
-			ShowError(err, 6003)
-			return nil
-		}
-		defer resp.Body.Close()
-
-		if resp.StatusCode != http.StatusOK {
-
-			if resp.StatusCode == 404 {
-				err = fmt.Errorf("update server: %s (%s)", http.StatusText(resp.StatusCode), gitInfo)
-				ShowError(err, 6003)
-				return nil
-			}
-
-			err = fmt.Errorf("%d: %s (%s)", resp.StatusCode, http.StatusText(resp.StatusCode), gitInfo)
-
-			return err
-		}
-
-		body, err = io.ReadAll(resp.Body)
-		if err != nil {
-			return err
-		}
-
-		err = json.Unmarshal(body, &git)
-		if err != nil {
-			return err
-		}
-
-		updater.Response.Status = true
-		updater.Response.UpdateZIP = zipFile
-		updater.Response.Version = git.Version
-		updater.Response.Filename = git.Filename
-
-	// Update vom eigenen Server
-	default:
-
-		updater.URL = Settings.UpdateURL
-
-		if len(updater.URL) == 0 {
-			showInfo(fmt.Sprintf("Update URL:No server URL specified, update will not be performed. Branch: %s", System.Branch))
-			return
-		}
-
-		showInfo("Update URL:" + updater.URL)
-
-		// Versionsinformationen vom Server laden
-		err = up2date.GetVersion()
-		if err != nil {
-
-			debug = err.Error()
-			showDebug(debug, 1)
-
-			return nil
-		}
-
-		if len(updater.Response.Reason) > 0 {
-
-			err = fmt.Errorf("update server: %s", updater.Response.Reason)
-			ShowError(err, 6002)
-
-			return nil
-		}
-
+	err = fetchLatestReleaseInfo(updater)
+	if err != nil {
+		ShowError(err, 6003)
+		return nil
 	}
 
 	var currentVersion = System.Version + "." + System.Build

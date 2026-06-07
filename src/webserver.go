@@ -10,8 +10,10 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"xteve/src/internal/authentication"
+	up2date "xteve/src/internal/up2date/client"
 
 	"github.com/gorilla/websocket"
 )
@@ -498,6 +500,43 @@ func WS(w http.ResponseWriter, r *http.Request) {
 
 				}
 
+			}
+
+		case "xteveUpdate":
+			if System.ScanInProgress == 1 {
+				response.Alert = "A system update/scan is currently in progress. Please try again later."
+				break
+			}
+
+			var updater = &up2date.Updater
+			updater.Name = System.Update.Name
+			updater.Branch = System.Branch
+
+			up2date.Init()
+
+			err = fetchLatestReleaseInfo(updater)
+			if err != nil {
+				response.Alert = "Failed to check for updates: " + err.Error()
+				break
+			}
+
+			var currentVersion = System.Version + "." + System.Build
+			if compareVersions(updater.Response.Version, currentVersion) > 0 && updater.Response.Status {
+				response.Alert = fmt.Sprintf("New version %s is available! Update started. xTeVe will download the update and restart.", updater.Response.Version)
+				if errJson := conn.WriteJSON(response); errJson != nil {
+					ShowError(errJson, 1022)
+				}
+
+				go func() {
+					time.Sleep(1 * time.Second)
+					err := up2date.DoUpdate("bin", updater.Response.Filename)
+					if err != nil {
+						ShowError(err, 6002)
+					}
+				}()
+				return
+			} else {
+				response.Alert = fmt.Sprintf("xTeVe is already up to date (current version: %s, latest: %s).", currentVersion, updater.Response.Version)
 			}
 
 		case "saveWizard":
