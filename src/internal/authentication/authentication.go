@@ -510,7 +510,7 @@ func SetCookieToken(w http.ResponseWriter, token string) http.ResponseWriter {
     Name:     "Token",
     Value:    token,
     Expires:  expiration,
-    HttpOnly: true,
+    HttpOnly: false,
     SameSite: http.SameSiteLaxMode,
     Path:     "/",
   }
