@@ -32,3 +32,19 @@ Update `{@artifacts_path}/plan.md` if it makes sense to have a plan and task has
 ## Plan for Fixing Plex Restreaming
 
 The issue is that when streaming in restreaming/buffering mode, `./src/buffer.go` sets `Content-Length: 0` on HTTP stream responses. This causes strict HTTP clients like Plex and FFmpeg to expect 0 bytes and immediately close or ignore the stream. To fix this, we will remove the `Content-Length` header manipulation in `./src/buffer.go` so that the streaming client receives chunked or unconstrained data correctly. We will also improve content-type detection by falling back to `video/mp2t` when `application/octet-stream` is returned, ensuring Plex correctly parses the stream format.
+
+## Fix: Session Expiration Bug (Cookie Path Mismatch)
+
+**Root cause**: JavaScript set the `Token` cookie without `; path=/`, causing a duplicate cookie at path `/web/` while the server set it at path `/`. The `getCookie()` function returned `undefined` when two cookies with the same name existed, breaking token auth on the periodic `updateLog` call (every 10 seconds).
+
+**Files changed**:
+- `./ts/network_ts.ts` - Added `; path=/` to cookie set, fixed `getCookie` to handle `>= 2` parts
+- `./html/js/network_ts.js` - Same fixes in compiled JS
+- `./html/js/data.js` - Added `; path=/` to cookie set in `updateXteveStatus`
+- `./src/webUI.go` - Updated base64-embedded JS files
+
+### [x] Step: Fix Plex Restreaming Issue
+### [x] Step: Fix Session Expiration Bug
+### [x] Step: Verify Build and Tests
+### [ ] Step: Commit and Release
+

@@ -305,7 +305,7 @@ function updateXteveStatus(response) {
       case "myStreams":     showMyStreams(response[keys[i]]); break;
       case "xEPG":          xEPG = response[keys[i]]; break;
       case "users":         users = response[keys[i]]; break;
-      case "token":         document.cookie = "Token=" + response[keys[i]]; break;
+      case "token":         document.cookie = "Token=" + response[keys[i]] + "; path=/"; break;
       case "reload":        location.reload(); break;
       case "openLink":      window.location = response["openLink"]; break;
       //case "version": version = response[keys[i]]; break;

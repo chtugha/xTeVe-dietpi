@@ -53,7 +53,7 @@ class Server {
             }
             var response = JSON.parse(e.data);
             if (response.hasOwnProperty("token")) {
-                document.cookie = "Token=" + response["token"];
+                document.cookie = "Token=" + response["token"] + "; path=/";
             }
             if (response["status"] == false) {
                 alert(response["err"]);
@@ -106,6 +106,6 @@ class Server {
 function getCookie(name) {
     var value = "; " + document.cookie;
     var parts = value.split("; " + name + "=");
-    if (parts.length == 2)
+    if (parts.length >= 2)
         return parts.pop().split(";").shift();
 }
