@@ -40,7 +40,7 @@ const Name = "xTeVe"
 // startup and stored in src.System.Build. Declared as var so the Go linker's
 // -X flag can inject the version from a git tag at compile time (e.g., via
 // make build or the CI workflow).
-var Version = "2.2.7.0200"
+var Version = "2.2.8.0200"
 
 // DBVersion is the settings database schema version understood by this build.
 // Settings files with a higher version will be rejected; files with a lower

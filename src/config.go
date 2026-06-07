@@ -160,6 +160,12 @@ func Init() (err error) {
 		return
 	}
 
+	// Temp-Ordner (inklusive UUID-Unterordner) sicherstellen
+	err = checkFolder(System.Folder.Temp)
+	if err != nil {
+		return
+	}
+
 	// Berechtigung aller Ordner überprüfen
 	if err = checkFilePermission(System.Folder.Config); err != nil {
 		return
@@ -169,11 +175,6 @@ func Init() (err error) {
 	}
 
 	showInfo(fmt.Sprintf("Temporary Folder:%s", getPlatformPath(System.Folder.Temp)))
-
-	err = checkFolder(System.Folder.Temp)
-	if err != nil {
-		return
-	}
 
 	err = removeChildItems(getPlatformPath(System.Folder.Temp))
 	if err != nil {
