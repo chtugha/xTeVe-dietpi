@@ -46,5 +46,5 @@ The issue is that when streaming in restreaming/buffering mode, `./src/buffer.go
 ### [x] Step: Fix Plex Restreaming Issue
 ### [x] Step: Fix Session Expiration Bug
 ### [x] Step: Verify Build and Tests
-### [ ] Step: Commit and Release
+### [x] Step: Commit and Release
 
