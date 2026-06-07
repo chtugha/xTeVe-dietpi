@@ -187,6 +187,14 @@ func CheckTheValidityOfTheToken(token string) (newToken string, err error) {
       return
     }
 
+    // To prevent race conditions with fast sequential or parallel WebSocket/HTTP requests,
+    // only rotate/regenerate the token if it has less than 30 minutes of validity remaining.
+    if expires.Sub(time.Now().Local()) > 30*time.Minute {
+      newToken = token
+      err = nil
+      return
+    }
+
     newToken = setToken(userID, token)
 
     err = nil
@@ -361,8 +369,11 @@ func CheckTheValidityOfTheTokenFromHTTPHeader(w http.ResponseWriter, r *http.Req
     if cookie.Name == "Token" {
       var token string
       token, err = CheckTheValidityOfTheToken(cookie.Value)
-      writer = SetCookieToken(w, token)
-      newToken = token
+      if err == nil {
+        writer = SetCookieToken(w, token)
+        newToken = token
+        return
+      }
     }
   }
   return
