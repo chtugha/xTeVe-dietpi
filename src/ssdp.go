@@ -23,7 +23,7 @@ func SSDP() (err error) {
   signal.Notify(quit, os.Interrupt)
 
   ad, err := ssdp.Advertise(
-    fmt.Sprintf("upnp:rootdevice"),                           // send as "ST"
+    "upnp:rootdevice",                           // send as "ST"
     fmt.Sprintf("uuid:%s::upnp:rootdevice", System.DeviceID), // send as "USN"
     fmt.Sprintf("%s/device.xml", System.URLBase),             // send as "LOCATION"
     System.AppName,  // send as "SERVER"

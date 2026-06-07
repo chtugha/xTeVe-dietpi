@@ -161,9 +161,11 @@ func Init() (err error) {
 	}
 
 	// Berechtigung aller Ordner überprüfen
-	err = checkFilePermission(System.Folder.Config)
-	if err == nil {
-		err = checkFilePermission(System.Folder.Temp)
+	if err = checkFilePermission(System.Folder.Config); err != nil {
+		return
+	}
+	if err = checkFilePermission(System.Folder.Temp); err != nil {
+		return
 	}
 
 	showInfo(fmt.Sprintf("Temporary Folder:%s", getPlatformPath(System.Folder.Temp)))

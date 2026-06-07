@@ -24,8 +24,6 @@ func showDevInfo() {
 		fmt.Println()
 
 	}
-
-	return
 }
 
 // Alle Systemordner erstellen
@@ -252,8 +250,6 @@ func setGlobalDomain(domain string) {
 		System.Addresses.M3U = getErrMsg(2106)
 		System.Addresses.XML = getErrMsg(2106)
 	}
-
-	return
 }
 
 // UUID generieren
@@ -274,8 +270,6 @@ func setDeviceID() {
 	default:
 		System.DeviceID = fmt.Sprintf("%s:%d", id, Settings.Tuner)
 	}
-
-	return
 }
 
 // Provider Streaming-URL zu xTeVe Streaming-URL konvertieren
@@ -341,7 +335,7 @@ func getStreamInfo(urlID string) (streamInfo StreamInfo, err error) {
 		streamInfo = s
 		streamInfo.URL = strings.Trim(streamInfo.URL, "\r\n")
 	} else {
-		err = errors.New("Streaming error")
+		err = errors.New("streaming error")
 	}
 
 	return

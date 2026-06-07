@@ -99,7 +99,7 @@ func CreateNewUser(username, password string) (userID string, err error) {
     var salt = userData["_salt"].(string)
     var loginUsername = userData["_username"].(string)
 
-    if SHA256(username, salt) == loginUsername {
+    if SHA256(username, salt) == loginUsername || sha256Legacy(username) == loginUsername {
       err = createError(020)
     }
 
@@ -131,30 +131,40 @@ func UserAuthentication(username, password string) (token string, err error) {
     return
   }
 
-  var login = func(username, password string, loginData map[string]interface{}) (err error) {
-    err = createError(010)
-
+  var login = func(username, password string, loginData map[string]interface{}) (matched bool, needsMigration bool) {
     var salt = loginData["_salt"].(string)
     var loginUsername = loginData["_username"].(string)
     var loginPassword = loginData["_password"].(string)
 
-    if SHA256(username, salt) == loginUsername {
-      if SHA256(password, salt) == loginPassword {
-        err = nil
-      }
+    if SHA256(username, salt) == loginUsername && SHA256(password, salt) == loginPassword {
+      return true, false
     }
 
-    return
+    if sha256Legacy(username) == loginUsername && sha256Legacy(password) == loginPassword {
+      return true, true
+    }
+
+    return false, false
   }
 
   var users = data["users"].(map[string]interface{})
   for id, loginData := range users {
-    err = login(username, password, loginData.(map[string]interface{}))
-    if err == nil {
+    ld := loginData.(map[string]interface{})
+    matched, needsMigration := login(username, password, ld)
+    if matched {
+      if needsMigration {
+        var salt = ld["_salt"].(string)
+        ld["_username"] = SHA256(username, salt)
+        ld["_password"] = SHA256(password, salt)
+        saveDatabase(data)
+      }
       token = setToken(id, "-")
+      err = nil
       return
     }
   }
+
+  err = createError(010)
 
   return
 }
@@ -402,6 +412,13 @@ func loadDatabase() (err error) {
 func SHA256(secret, salt string) string {
   key := []byte(secret)
   h := hmac.New(sha256.New, key)
+  h.Write([]byte(salt))
+  return base64.StdEncoding.EncodeToString(h.Sum(nil))
+}
+
+func sha256Legacy(secret string) string {
+  key := []byte(secret)
+  h := hmac.New(sha256.New, key)
   h.Write([]byte("_remote_db"))
   return base64.StdEncoding.EncodeToString(h.Sum(nil))
 }
@@ -432,23 +449,23 @@ func createError(errCode int) (err error) {
   var errMsg string
   switch errCode {
   case 000:
-    errMsg = "Authentication has not yet been initialized"
+    errMsg = "authentication has not yet been initialized"
   case 001:
-    errMsg = "Default user already exists"
+    errMsg = "default user already exists"
   case 002:
-    errMsg = "No user id found for this token"
+    errMsg = "no user id found for this token"
   case 010:
-    errMsg = "User authentication failed"
+    errMsg = "user authentication failed"
   case 011:
-    errMsg = "Session has expired"
+    errMsg = "session has expired"
   case 020:
-    errMsg = "User already exists"
+    errMsg = "user already exists"
   case 030:
-    errMsg = "User data could not be saved"
+    errMsg = "user data could not be saved"
   case 031:
-    errMsg = "User data could not be read"
+    errMsg = "user data could not be read"
   case 032:
-    errMsg = "User ID was not found"
+    errMsg = "user ID was not found"
   }
 
   err = errors.New(errMsg)
@@ -486,18 +503,17 @@ loopToken:
   return
 }
 
-func mapToJSON(tmpMap interface{}) string {
-  jsonString, err := json.MarshalIndent(tmpMap, "", "  ")
-  if err != nil {
-    return "{}"
-  }
-  return string(jsonString)
-}
-
 // SetCookieToken : set cookie
 func SetCookieToken(w http.ResponseWriter, token string) http.ResponseWriter {
   expiration := time.Now().Add(time.Minute * time.Duration(tokenValidity))
-  cookie := http.Cookie{Name: "Token", Value: token, Expires: expiration}
+  cookie := http.Cookie{
+    Name:     "Token",
+    Value:    token,
+    Expires:  expiration,
+    HttpOnly: true,
+    SameSite: http.SameSiteLaxMode,
+    Path:     "/",
+  }
   http.SetCookie(w, &cookie)
   return w
 }

@@ -124,8 +124,6 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	}
 
 	httpStatusError(w, r, 500)
-
-	return
 }
 
 // Stream : Web Server /stream/
@@ -157,7 +155,7 @@ func Stream(w http.ResponseWriter, r *http.Request) {
 			ShowError(err, 2004)
 
 			showInfo("Streaming URL:" + streamInfo.URL)
-			http.Redirect(w, r, streamInfo.URL, 302)
+			http.Redirect(w, r, streamInfo.URL, http.StatusFound)
 
 			showInfo("Streaming Info:URL was passed to the client")
 			return
@@ -182,7 +180,7 @@ func Stream(w http.ResponseWriter, r *http.Request) {
 
 	case "-":
 		showInfo("Streaming URL:" + streamInfo.URL)
-		http.Redirect(w, r, streamInfo.URL, 302)
+		http.Redirect(w, r, streamInfo.URL, http.StatusFound)
 
 		showInfo("Streaming Info:URL was passed to the client.")
 		showInfo("Streaming Info:xTeVe is no longer involved, the client connects directly to the streaming server.")
@@ -191,8 +189,6 @@ func Stream(w http.ResponseWriter, r *http.Request) {
 		bufferingStream(streamInfo.PlaylistID, streamInfo.URL, streamInfo.Name, w, r)
 
 	}
-
-	return
 }
 
 // xTeVe : Web Server /xmltv/ und /m3u/
@@ -261,8 +257,6 @@ func xTeVe(w http.ResponseWriter, r *http.Request) {
 	if err == nil {
 		w.Write([]byte(content))
 	}
-
-	return
 }
 
 // Images : Image Cache /images/
@@ -281,8 +275,6 @@ func Images(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-Length", fmt.Sprintf("%d", len(content)))
 	w.WriteHeader(200)
 	w.Write(content)
-
-	return
 }
 
 // DataImages : Image Pfad für Logos / Bilder die hochgeladen wurden /data_images/
@@ -301,8 +293,6 @@ func DataImages(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-Length", fmt.Sprintf("%d", len(content)))
 	w.WriteHeader(200)
 	w.Write(content)
-
-	return
 }
 
 // WS : Web Sockets /ws/
@@ -314,7 +304,11 @@ func WS(w http.ResponseWriter, r *http.Request) {
 
 	var newToken string
 
-	conn, err := websocket.Upgrade(w, r, w.Header(), websocketBufferSize, websocketBufferSize)
+	var upgrader = websocket.Upgrader{
+		ReadBufferSize:  websocketBufferSize,
+		WriteBufferSize: websocketBufferSize,
+	}
+	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		ShowError(err, 0)
 		http.Error(w, "Could not open websocket connection", http.StatusBadRequest)
@@ -544,8 +538,6 @@ func WS(w http.ResponseWriter, r *http.Request) {
 		}
 
 	}
-
-	return
 }
 
 // Web : Web Server /web/
@@ -635,7 +627,7 @@ func Web(w http.ResponseWriter, r *http.Request) {
 					}
 					// Redirect, damit die Daten aus dem Browser gelöscht werden.
 					w = authentication.SetCookieToken(w, token)
-					http.Redirect(w, r, "/web", 301)
+					http.Redirect(w, r, "/web", http.StatusMovedPermanently)
 					return
 
 				}
@@ -651,11 +643,11 @@ func Web(w http.ResponseWriter, r *http.Request) {
 					}
 
 					w = authentication.SetCookieToken(w, token)
-					http.Redirect(w, r, "/web", 301) // Redirect, damit die Daten aus dem Browser gelöscht werden.
+					http.Redirect(w, r, "/web", http.StatusMovedPermanently) // Redirect, damit die Daten aus dem Browser gelöscht werden.
 
 				} else {
 					w = authentication.SetCookieToken(w, "-")
-					http.Redirect(w, r, "/web", 301) // Redirect, damit die Daten aus dem Browser gelöscht werden.
+					http.Redirect(w, r, "/web", http.StatusMovedPermanently) // Redirect, damit die Daten aus dem Browser gelöscht werden.
 				}
 
 				return
@@ -692,16 +684,7 @@ func Web(w http.ResponseWriter, r *http.Request) {
 
 		requestFile = file
 
-		if value, ok := webUI[requestFile]; ok {
-
-			content = GetHTMLString(value.(string))
-
-			if contentType == "text/plain" {
-				w.Header().Set("Content-Disposition", "attachment; filename="+getFilenameFromPath(requestFile))
-			}
-
-		} else {
-
+		if _, ok := webUI[requestFile]; !ok {
 			httpStatusError(w, r, 404)
 			return
 		}
@@ -800,8 +783,6 @@ func API(w http.ResponseWriter, r *http.Request) {
 		response.Status = false
 		response.Error = err.Error()
 		w.Write([]byte(mapToJSON(response)))
-		return
-
 	}
 
 	response.Status = true
@@ -844,7 +825,7 @@ func API(w http.ResponseWriter, r *http.Request) {
 				}
 
 			} else {
-				err = errors.New("Login incorrect")
+				err = errors.New("login incorrect")
 				if err != nil {
 					responseAPIError(err)
 					return
@@ -927,8 +908,6 @@ func API(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(mapToJSON(response)))
-
-	return
 }
 
 // Download : Datei Download
@@ -946,7 +925,6 @@ func Download(w http.ResponseWriter, r *http.Request) {
 
 	os.RemoveAll(System.Folder.Temp + getFilenameFromPath(path))
 	w.Write([]byte(content))
-	return
 }
 
 func setDefaultResponseData(response ResponseStruct, data bool) (defaults ResponseStruct) {

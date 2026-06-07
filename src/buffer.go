@@ -170,8 +170,7 @@ func bufferingStream(playlistID, streamingURL, channelName string, w http.Respon
 
 				if value, ok := webUI["html/video/stream-limit.ts"]; ok {
 
-					var content string
-					content = GetHTMLString(value.(string))
+					var content = GetHTMLString(value.(string))
 
 					w.Header().Set("Content-type", "video/mpeg")
 					w.WriteHeader(200)
@@ -674,7 +673,7 @@ func connectToStreamingServer(streamID int, playlistID string) {
 
 			client := &http.Client{}
 			client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
-				return errors.New("Redirect")
+				return errors.New("redirect")
 			}
 
 			resp, err := client.Do(req)
@@ -687,7 +686,7 @@ func connectToStreamingServer(streamID int, playlistID string) {
 
 				if resp == nil {
 
-					err = errors.New("No response from streaming server")
+					err = errors.New("no response from streaming server")
 					showDebug(fmt.Sprintf("Buffer Status:No response from %s", currentURL), 1)
 					ShowError(err, 0)
 
@@ -718,7 +717,7 @@ func connectToStreamingServer(streamID int, playlistID string) {
 
 					} else {
 
-						err = errors.New("Streaming server")
+						err = errors.New("streaming server")
 						ShowError(err, 4002)
 						addErrorToStream(err)
 
@@ -972,7 +971,7 @@ func connectToStreamingServer(streamID int, playlistID string) {
 			// Umbekanntes Format
 			default:
 				showInfo("Content Type:" + resp.Header.Get("Content-Type"))
-				err = errors.New("Streaming error")
+				err = errors.New("streaming error")
 				ShowError(err, 4003)
 
 				addErrorToStream(err)
@@ -1145,8 +1144,6 @@ func parseM3U8(stream *ThisStream) (err error) {
 			segment.URL = serverURLPath
 
 		}
-
-		return
 	}
 
 	if strings.Contains(stream.Body, "#EXTM3U") {
@@ -1540,7 +1537,7 @@ func thirdPartyBuffer(streamID int, playlistID string) {
 			case timeout := <-t:
 				if timeout >= thirdPartyBufferStartupTimeoutSec && tmpSegment == 1 {
 					cmd.Process.Kill()
-					err = errors.New("Timout")
+					err = errors.New("timeout")
 					ShowError(err, 4006)
 					addErrorToStream(err)
 					f.Close()
@@ -1683,8 +1680,6 @@ func debugRequest(req *http.Request) {
 
 	debug = "Request:* * * * * * END HTTP(S) REQUEST * * * * * *"
 	showDebug(debug, debugLevel)
-
-	return
 }
 
 func debugResponse(resp *http.Response) {
@@ -1726,6 +1721,4 @@ func debugResponse(resp *http.Response) {
 
 	debug = "Pesponse:* * * * * * END RESPONSE * * * * * * "
 	showDebug(debug, debugLevel)
-
-	return
 }

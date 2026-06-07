@@ -38,8 +38,6 @@ func showInfo(str string) {
 		screenLogMutex.Unlock()
 
 	}
-
-	return
 }
 
 func showDebug(str string, level int) {
@@ -67,8 +65,6 @@ func showDebug(str string, level int) {
 		screenLogMutex.Unlock()
 
 	}
-
-	return
 }
 
 func showHighlight(str string) {
@@ -93,8 +89,6 @@ func showHighlight(str string) {
 	notification.Message = msg[1]
 
 	addNotification(notification)
-
-	return
 }
 
 func showWarning(errCode int) {
@@ -108,8 +102,6 @@ func showWarning(errCode int) {
 	WebScreenLog.Log = append(WebScreenLog.Log, time.Now().Format("2006-01-02 15:04:05")+" "+logMsg)
 	WebScreenLog.Warnings++
 	screenLogMutex.Unlock()
-
-	return
 }
 
 // ShowError : Zeigt die Fehlermeldungen in der Konsole
@@ -124,8 +116,6 @@ func ShowError(err error, errCode int) {
 	WebScreenLog.Log = append(WebScreenLog.Log, time.Now().Format("2006-01-02 15:04:05")+" "+logMsg)
 	WebScreenLog.Errors++
 	screenLogMutex.Unlock()
-
-	return
 }
 
 func printLogOnScreen(logMsg string, logType string) {
@@ -184,8 +174,6 @@ func logCleanUp() {
 	}
 
 	WebScreenLog.Log = logs
-
-	return
 }
 
 // Fehlercodes

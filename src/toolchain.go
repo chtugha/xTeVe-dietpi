@@ -145,12 +145,6 @@ func getFilenameFromPath(path string) (file string) {
 	return filepath.Base(path)
 }
 
-// Nicht mehr verwendete Systemdaten löschen
-func removeOldSystemData() {
-	// Temporären Ordner löschen
-	os.RemoveAll(System.Folder.Temp)
-}
-
 // Sucht eine Datei im OS
 func searchFileInOS(file string) (path string) {
 

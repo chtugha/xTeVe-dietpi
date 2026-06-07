@@ -413,8 +413,6 @@ func deleteLocalProviderFiles(dataID, fileType string) {
 		delete(removeData, dataID)
 		os.RemoveAll(System.Folder.Data + dataID + fileExtension)
 	}
-
-	return
 }
 
 // Filtereinstellungen speichern (WebUI)
@@ -863,11 +861,7 @@ func buildDatabaseDVR() (err error) {
 						if value, ok := s[key]; ok {
 							if len(value) > 0 {
 
-								if _, ok := tmpGroupsM3U[value]; ok {
-									tmpGroupsM3U[value]++
-								} else {
-									tmpGroupsM3U[value] = 1
-								}
+								tmpGroupsM3U[value]++
 
 								groupTitle++
 							}

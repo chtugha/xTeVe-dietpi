@@ -2,7 +2,6 @@ package m3u
 
 import (
   "errors"
-  "fmt"
   "log"
   "net/url"
   "regexp"
@@ -124,7 +123,7 @@ func MakeInterfaceFromM3U(byteStream []byte) (allChannels []interface{}, err err
         if strings.Contains(strings.ToLower(key), "id") {
 
           if indexOfString(value, uuids) != -1 {
-            log.Println(fmt.Sprintf("Channel: %s - %s = %s ", stream["name"], key, value))
+            log.Printf("Channel: %s - %s = %s ", stream["name"], key, value)
             break
           }
 
@@ -144,7 +143,7 @@ func MakeInterfaceFromM3U(byteStream []byte) (allChannels []interface{}, err err
   }
 
   if strings.Contains(content, "#EXT-X-TARGETDURATION") || strings.Contains(content, "#EXT-X-MEDIA-SEQUENCE") {
-    err = errors.New("Invalid M3U file, an extended M3U file is required.")
+    err = errors.New("invalid M3U file, an extended M3U file is required")
     return
   }
 
@@ -166,7 +165,7 @@ func MakeInterfaceFromM3U(byteStream []byte) (allChannels []interface{}, err err
 
   } else {
 
-    err = errors.New("Invalid M3U file, an extended M3U file is required.")
+    err = errors.New("invalid M3U file, an extended M3U file is required")
 
   }
 

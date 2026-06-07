@@ -174,81 +174,81 @@ type Filter struct {
 
 // XEPGChannelStruct : XEPG Struktur
 type XEPGChannelStruct struct {
-	FileM3UID          string `json:"_file.m3u.id,required"`
-	FileM3UName        string `json:"_file.m3u.name,required"`
-	FileM3UPath        string `json:"_file.m3u.path,required"`
-	GroupTitle         string `json:"group-title,required"`
-	Name               string `json:"name,required"`
-	TvgID              string `json:"tvg-id,required"`
-	TvgLogo            string `json:"tvg-logo,required"`
-	TvgName            string `json:"tvg-name,required"`
-	URL                string `json:"url,required"`
-	UUIDKey            string `json:"_uuid.key,required"`
+	FileM3UID          string `json:"_file.m3u.id"`
+	FileM3UName        string `json:"_file.m3u.name"`
+	FileM3UPath        string `json:"_file.m3u.path"`
+	GroupTitle         string `json:"group-title"`
+	Name               string `json:"name"`
+	TvgID              string `json:"tvg-id"`
+	TvgLogo            string `json:"tvg-logo"`
+	TvgName            string `json:"tvg-name"`
+	URL                string `json:"url"`
+	UUIDKey            string `json:"_uuid.key"`
 	UUIDValue          string `json:"_uuid.value,omitempty"`
-	Values             string `json:"_values,required"`
-	XActive            bool   `json:"x-active,required"`
-	XCategory          string `json:"x-category,required"`
-	XChannelID         string `json:"x-channelID,required"`
-	XEPG               string `json:"x-epg,required"`
-	XGroupTitle        string `json:"x-group-title,required"`
-	XMapping           string `json:"x-mapping,required"`
-	XmltvFile          string `json:"x-xmltv-file,required"`
-	XName              string `json:"x-name,required"`
-	XUpdateChannelIcon bool   `json:"x-update-channel-icon,required"`
-	XUpdateChannelName bool   `json:"x-update-channel-name,required"`
-	XDescription       string `json:"x-description,required"`
+	Values             string `json:"_values"`
+	XActive            bool   `json:"x-active"`
+	XCategory          string `json:"x-category"`
+	XChannelID         string `json:"x-channelID"`
+	XEPG               string `json:"x-epg"`
+	XGroupTitle        string `json:"x-group-title"`
+	XMapping           string `json:"x-mapping"`
+	XmltvFile          string `json:"x-xmltv-file"`
+	XName              string `json:"x-name"`
+	XUpdateChannelIcon bool   `json:"x-update-channel-icon"`
+	XUpdateChannelName bool   `json:"x-update-channel-name"`
+	XDescription       string `json:"x-description"`
 }
 
 // M3UChannelStructXEPG : M3U Struktur für XEPG
 type M3UChannelStructXEPG struct {
-	FileM3UID   string `json:"_file.m3u.id,required"`
-	FileM3UName string `json:"_file.m3u.name,required"`
-	FileM3UPath string `json:"_file.m3u.path,required"`
-	GroupTitle  string `json:"group-title,required"`
-	Name        string `json:"name,required"`
-	TvgID       string `json:"tvg-id,required"`
-	TvgLogo     string `json:"tvg-logo,required"`
-	TvgName     string `json:"tvg-name,required"`
-	URL         string `json:"url,required"`
-	UUIDKey     string `json:"_uuid.key,required"`
-	UUIDValue   string `json:"_uuid.value,required"`
-	Values      string `json:"_values,required"`
+	FileM3UID   string `json:"_file.m3u.id"`
+	FileM3UName string `json:"_file.m3u.name"`
+	FileM3UPath string `json:"_file.m3u.path"`
+	GroupTitle  string `json:"group-title"`
+	Name        string `json:"name"`
+	TvgID       string `json:"tvg-id"`
+	TvgLogo     string `json:"tvg-logo"`
+	TvgName     string `json:"tvg-name"`
+	URL         string `json:"url"`
+	UUIDKey     string `json:"_uuid.key"`
+	UUIDValue   string `json:"_uuid.value"`
+	Values      string `json:"_values"`
 }
 
 // FilterStruct : Filter Struktur
 type FilterStruct struct {
-	Active        bool   `json:"active,required"`
-	CaseSensitive bool   `json:"caseSensitive,required"`
-	Description   string `json:"description,required"`
-	Exclude       string `json:"exclude,required"`
-	Filter        string `json:"filter,required"`
-	Include       string `json:"include,required"`
-	Name          string `json:"name,required"`
+	Active        bool   `json:"active"`
+	CaseSensitive bool   `json:"caseSensitive"`
+	Description   string `json:"description"`
+	Exclude       string `json:"exclude"`
+	Filter        string `json:"filter"`
+	Include       string `json:"include"`
+	Name          string `json:"name"`
 	Rule          string `json:"rule,omitempty"`
-	Type          string `json:"type,required"`
+	Type          string `json:"type"`
 }
 
 // StreamingURLS : Informationen zu allen streaming URL's
 type StreamingURLS struct {
-	Streams map[string]StreamInfo `json:"channels,required"`
+	Streams map[string]StreamInfo `json:"channels"`
 }
 
 // StreamInfo : Informationen zum Kanal für die streaming URL
 type StreamInfo struct {
-	ChannelNumber string `json:"channelNumber,required"`
-	Name          string `json:"name,required"`
-	PlaylistID    string `json:"playlistID,required"`
-	URL           string `json:"url,required"`
-	URLid         string `json:"urlID,required"`
+	ChannelNumber string `json:"channelNumber"`
+	Name          string `json:"name"`
+	PlaylistID    string `json:"playlistID"`
+	URL           string `json:"url"`
+	URLid         string `json:"urlID"`
 }
 
 // Notification : Notifikationen im Webinterface
 type Notification struct {
-	Headline string `json:"headline,required"`
-	Message  string `json:"message,required"`
-	New      bool   `json:"new,required"`
-	Time     string `json:"time,required"`
-	Type     string `json:"type,required"`
+	Headline string `json:"headline"`
+	Message  string `json:"message"`
+	New      bool   `json:"new"`
+	Time     string `json:"time"`
+	Type     string `json:"type"`
 }
 
 // SettingsStruct : Inhalt der settings.json
