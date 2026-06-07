@@ -1,163 +1,142 @@
-<div align="center" style="background-color: #111; padding: 100;">
-    <a href="https://github.com/xteve-project/xTeVe"><img width="880" height="200" src="html/img/logo_b_880x200.jpg" alt="xTeVe" /></a>
+<div align="center" style="background-color: #111; padding: 100px;">
+    <img width="880" height="200" src="html/img/logo_b_880x200.jpg" alt="xTeVe" />
 </div>
 <br>
 
-# xTeVe for dietpi
-## M3U Proxy for Plex DVR and Emby Live TV. Served via dietpi-software. 
+# xTeVe for DietPi & Standard Systems
 
-Original documentation for setup and configuration is [here](https://github.com/xteve-project/xTeVe-Documentation/blob/master/en/configuration.md).
+An enhanced, high-performance fork of **xTeVe** — the ultimate M3U Proxy for Plex DVR, Emby, and Jellyfin Live TV. This fork is optimized for both standard operating systems and **DietPi** environments, featuring critical fixes for streaming and updating.
 
-Updated documentation for this fork is [here](https://github.com/chtugha/xTeVe-dietpi/blob/master/docs/dietpi-package.md).
+## Credits & Original Creator
 
-Development documentation for this fork is [here](https://github.com/chtugha/xTeVe-dietpi/blob/master/docs/development.md).
+This project is a continuation and enhancement of the original **xTeVe** software. We give full credit and appreciation to the original creator, **xteve-project**, and the incredible work they did in building this tool.
 
-#### Donation
-* **Bitcoin:** 1c1iCe4CJPfNUXtqxKBbW2Qd2EtqRPWme  
-![Bitcoin](html/img/BC-QR.jpg "Bitcoin - xTeVe")
+- **Original Repository**: [https://github.com/xteve-project/xTeVe](https://github.com/xteve-project/xTeVe)
+- **Original Documentation**: [https://github.com/xteve-project/xTeVe-Documentation](https://github.com/xteve-project/xTeVe-Documentation)
 
-## Requirements
-### Plex
-* Plex Media Server (1.11.1.4730 or newer)
-* Plex Client with DVR support
-* Plex Pass
+---
 
-### Emby
-* Emby Server (3.5.3.0 or newer)
-* Emby Client with Live-TV support
-* Emby Premiere
+## Key Fork Enhancements
 
---- 
+- **Plex Restreaming & Buffering Fix**: Fully resolved the critical issue where restreaming/buffering mode failed to stream to Plex DVR or strict HTTP clients like FFmpeg and VLC. The server no longer forces empty `Content-Length` headers, allowing unconstrained, real-time chunked stream consumption.
+- **GitHub Release Updater**: Completely rebuilt the self-updater to directly query the GitHub Releases API. It detects your current OS/architecture, fetches the correct binary automatically, and hot-swaps it.
+- **Manual Update Check Trigger**: Added an **Update xTeVe** button in the Web UI Settings next to the auto-update toggle, letting you check for and execute updates manually on demand.
+- **DietPi Safety Checks**: Built-in safety features prevent accidental package manager conflicts on DietPi installations. Auto-updates default to disabled when `DIETPI=1` is detected, with log warning level checks to notify users of out-of-band updates.
+
+---
 
 ## Features
 
-#### Files
-* Merge external M3U files
-* Merge external XMLTV files
-* Automatic M3U and XMLTV update
-* M3U and XMLTV export
-
-#### Channel management
-* Filtering streams
-* Channel mapping
-* Channel order
-* Channel logos
-* Channel categories
-
-#### Streaming
-* Buffer with HLS / M3U8 support
-* Re-streaming
-* Number of tuners adjustable
-* Compatible with Plex / Emby EPG
+- **Virtual Tuner Emulation**: Emulates a SiliconDust HDHomeRun network tuner to integrate seamlessly with Plex Media Server, Emby, and Jellyfin.
+- **Stream Merging**: Merge multiple external M3U playlists and XMLTV EPG sources into a single coherent lineup.
+- **Stream Buffering**: Built-in HLS/M3U8 buffering engines and FFmpeg wrapper support to prevent connection drops.
+- **Lineup Customization**: Manage channel numbers, names, ordering, category tags, logos, and EPG mapping through an elegant Web UI.
 
 ---
 
-## Downloads v2 | 64 Bit only
-#### 64 Bit Intel / AMD
+## Installation Guide
 
-* [Windows](https://github.com/xteve-project/xTeVe-Downloads/blob/master/xteve_windows_amd64.zip?raw=true)
-* [OS X](https://github.com/xteve-project/xTeVe-Downloads/blob/master/xteve_darwin_amd64.zip?raw=true)
-* [Linux](https://github.com/xteve-project/xTeVe-Downloads/blob/master/xteve_linux_amd64.zip?raw=true)
-* [FreeBSD](https://github.com/xteve-project/xTeVe-Downloads/blob/master/xteve_freebsd_amd64.zip?raw=true)
+### Method 1: Installing Pre-compiled Releases (Recommended)
 
-#### 64 Bit ARM
-* [Linux](https://github.com/xteve-project/xTeVe-Downloads/blob/master/xteve_linux_arm64.zip?raw=true)
+Standalone, statically compiled binaries are available for multiple operating systems and architectures.
 
-#### Recommended Docker Image (Linux 64 Bit)
-Thanks to @alturismo and @LeeD for creating the Docker Images.
-
-**Created by alturismo:**  
-[xTeVe](https://hub.docker.com/r/alturismo/xteve)  
-[xTeVe / Guide2go](https://hub.docker.com/r/alturismo/xteve_guide2go)  
-[xTeVe / Guide2go / owi2plex](https://hub.docker.com/r/alturismo/xteve_g2g_owi)
-
-Including:  
-- Guide2go: XMLTV grabber for Schedules Direct  
-- owi2plex: XMLTV file grabber for Enigma receivers
-
-**Created by LeeD:**  
-[xTeVe / Guide2go / Zap2XML](https://hub.docker.com/r/dnsforge/xteve)  
-
-Including:  
-- Guide2go: XMLTV grabber for Schedules Direct  
-- Zap2XML: Perl based zap2it XMLTV grabber  
-- Bash: A Unix / Linux shell  
-- Crond: Daemon to execute scheduled commands  
-- Perl: Programming language   
+1. Navigate to our [Releases Page](https://github.com/chtugha/xTeVe-dietpi/releases).
+2. Download the binary that matches your operating system and architecture:
+   - **Linux (64-bit Intel/AMD)**: `xteve_linux_amd64` or `xteve_linux_amd64.tar.gz`
+   - **Linux (64-bit ARM / Raspberry Pi 4/5)**: `xteve_linux_arm64` or `xteve_linux_arm64.tar.gz`
+   - **Linux (32-bit ARM / Raspberry Pi 3)**: `xteve_linux_arm` or `xteve_linux_arm.tar.gz`
+3. Extract and make the binary executable:
+   ```bash
+   chmod +x xteve_linux_amd64
+   ./xteve_linux_amd64
+   ```
 
 ---
 
-### xTeVe Beta branch
-New features and bug fixes are only available in beta branch. Only after successful testing are they are merged into the master branch.
+### Method 2: DietPi Service Setup (DietPi Systems)
 
-**It is not recommended to use the beta version in a production system.**  
+If you are running on **DietPi**, you can integrate xTeVe as a systemd background service. We provide a reference installer script in `./dietpi/install.sh` that is fully compliant with the `dietpi-software` manager environment.
 
-With the command line argument `branch` the Git Branch can be changed. xTeVe must be started via the terminal.  
+To set up the systemd service manually on your DietPi machine:
 
-#### Switch from master to beta branch:
-```
-xteve -branch beta
+1. Create a dedicated application directory:
+   ```bash
+   mkdir -p /mnt/dietpi_userdata/xteve
+   ```
+2. Download the binary and set execute permissions:
+   ```bash
+   curl -sSfL 'https://api.github.com/repos/chtugha/xTeVe-dietpi/releases/latest' \
+     | grep -Po '"browser_download_url": *"\K[^"]*\/xteve_linux_amd64' \
+     | xargs curl -L -o /usr/local/bin/xteve
+   chmod +x /usr/local/bin/xteve
+   ```
+3. Create a dedicated non-privileged user:
+   ```bash
+   useradd -r -s /usr/sbin/nologin -G video -d /mnt/dietpi_userdata/xteve xteve
+   chown -R xteve:xteve /mnt/dietpi_userdata/xteve
+   ```
+4. Install and enable the systemd service template found in `./dietpi/install.sh`:
+   ```bash
+   # Enable the systemd service
+   systemctl daemon-reload
+   systemctl enable --now xteve
+   ```
 
-...
-[xTeVe] GitHub:                https://github.com/xteve-project
-[xTeVe] Git Branch:            beta [xteve-project]
-...
-```
-
-#### Switch from beta to master branch:
-```
-xteve -branch master
-
-...
-[xTeVe] GitHub:                https://github.com/xteve-project
-[xTeVe] Git Branch:            master [xteve-project]
-...
-```
-
-When the branch is changed, an update is only performed if there is a new version and the update function is activated in the settings.  
+To uninstall or remove the service, refer to `./dietpi/uninstall.sh` to cleanly stop, disable, and clean up the directories.
 
 ---
 
-## Build from source code [Go / Golang]
+### Method 3: Compiling from Source
 
-#### Requirements
-* [Go](https://golang.org) (go1.16.2 or newer)
+To compile the latest version of xTeVe directly from the source code, make sure you have Go installed (Go version 1.21 or newer is required).
 
-#### Dependencies
-* [go-ssdp](https://github.com/koron/go-ssdp)
-* [websocket](https://github.com/gorilla/websocket)
-* [osext](https://github.com/kardianos/osext)
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/chtugha/xTeVe-dietpi.git
+   cd xTeVe-dietpi
+   ```
+2. Build the project using the `./Makefile`:
+   - Build for your local architecture:
+     ```bash
+     make build
+     ```
+   - Compile for all supported platforms (Linux AMD64, ARM64, and ARMv7):
+     ```bash
+     make build-all
+     ```
+3. The compiled binaries will be outputted to the `build/` directory.
 
-#### Build
-1. Download source code
-2. Install dependencies
-```
-go get github.com/koron/go-ssdp
-go get github.com/gorilla/websocket
-go get github.com/kardianos/osext
-```
-3. Build xTeVe
-```
-go build xteve.go
+---
+
+## Command Line Arguments
+
+When launching the binary, you can customize the configuration and server properties using command-line flags:
+
+```text
+  -config <path>    : Path to the configuration folder (default: ~/.xteve/)
+  -port <number>    : HTTP server port (default: 34400)
+  -branch <name>    : Update branch [master|beta] (default: master)
+  -debug <level>    : Set debug level [0 - 3] (default: 0)
+  -info             : Output system architecture and version info, then exit
+  -restore <path>   : Path to a backup ZIP archive to restore from on startup
+  -h                : Show help menu and list all options
 ```
 
 ---
 
-## Fork without pull request :mega:
-When creating a fork, the xTeVe GitHub account must be changed from the source code or the update function disabled.
-Future updates of the xteve-project would update your fork. :wink:
+## Plex DVR & Emby Integration
 
-xteve.go - Line: 29
-```Go
-var GitHub = GitHubStruct{Branch: "master", User: "xteve-project", Repo: "xTeVe-Downloads", Update: true}
+1. Launch xTeVe on your server.
+2. Open your web browser and go to `http://<your-server-ip>:34400/web/`.
+3. Follow the Setup Wizard to point to your `.m3u` playlist and `.xml` EPG files.
+4. Once configured, open **Plex Media Server** and navigate to **Settings** > **Live TV & DVR**.
+5. Click **Add Device** / **Set Up DVR**. Plex should automatically discover the xTeVe virtual tuner. If not, enter the address manually as `http://<your-server-ip>:34400/`.
+6. Select your channel lineup and associate it with the XMLTV guide provided by xTeVe at `http://<your-server-ip>:34400/xmltv/xteve.xml`.
 
-/*
-  Branch: GitHub Branch
-  User:   GitHub Username
-  Repo:   GitHub Repository
-  Update: Automatic updates from the GitHub repository [true|false]
-*/
+---
 
-```
+## Contributing & Development
 
+For details on project structure, internal packages, and guidelines for testing, see `./README-DEV.md`.
 
+*Note: For security and stability, the automatic self-update feature can be toggled in the Web UI Settings panel. Under DietPi environments, updates can be performed safely via the manual trigger button.*
