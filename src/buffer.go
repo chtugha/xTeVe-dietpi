@@ -174,7 +174,6 @@ func bufferingStream(playlistID, streamingURL, channelName string, w http.Respon
 					content = GetHTMLString(value.(string))
 
 					w.Header().Set("Content-type", "video/mpeg")
-					w.Header().Set("Content-Length", "0")
 					w.WriteHeader(200)
 
 					for range [streamLimitLoopCount]struct{}{} {
@@ -348,8 +347,10 @@ func bufferingStream(playlistID, streamingURL, channelName string, w http.Respon
 								if !streaming {
 
 									contentType := http.DetectContentType(buffer)
+									if contentType == "application/octet-stream" {
+										contentType = "video/mp2t"
+									}
 									w.Header().Set("Content-type", contentType)
-									w.Header().Set("Content-Length", "0")
 									w.Header().Set("Connection", "close")
 
 								}
